@@ -3,10 +3,9 @@ name: Example - External Repository Usage
 # This workflow demonstrates how to use MCP-Safeguard in other repositories
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  # This is a copyable consumer example. Keep it manual in this repository so
+  # it does not create redundant checks on every push to MCP-Safeguard itself.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,7 +24,7 @@ jobs:
       # The action installs pnpm + Node and builds the scanner itself,
       # so no separate setup-node step is required here.
       - name: Run MCP Security Scanner
-        uses: mcp-safeguard/mcp-safeguard@main
+        uses: Li-Bailiang/mcp-safeguard@main
         with:
           fail-on-severity: 'high'
           upload-sarif: 'true'
@@ -54,7 +53,7 @@ jobs:
           EOF
 
       - name: Run scan with custom config
-        uses: mcp-safeguard/mcp-safeguard@main
+        uses: Li-Bailiang/mcp-safeguard@main
         with:
           config-path: '.mcp-safeguardrc.js'
           fail-on-severity: 'medium'
@@ -81,7 +80,10 @@ jobs:
       - name: Check for MCP-related changes
         id: check-changes
         run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '(mcp|server|index)\.(ts|js)$'; then
+          BASE_SHA="${{ github.event.before }}"
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+          elif git diff --name-only "$BASE_SHA" "${{ github.sha }}" | grep -E '(mcp|server|index)\.(ts|js)$'; then
             echo "has-changes=true" >> $GITHUB_OUTPUT
           else
             echo "has-changes=false" >> $GITHUB_OUTPUT
@@ -89,7 +91,7 @@ jobs:
 
       - name: Run security scan
         if: steps.check-changes.outputs.has-changes == 'true'
-        uses: mcp-safeguard/mcp-safeguard@main
+        uses: Li-Bailiang/mcp-safeguard@main
         with:
           fail-on-severity: 'high'
           upload-sarif: 'true'

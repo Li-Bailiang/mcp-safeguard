@@ -19,8 +19,6 @@ jobs:
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Set up Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -43,7 +41,7 @@ jobs:
         run: pnpm build
 
       - name: Test
-        run: pnpm test
+        run: pnpm -r --workspace-concurrency=1 test
 
   # Dogfooding: run MCP-Safeguard on its own source on every push/PR. The repo's
   # .mcp-safeguardrc.yaml + .mcpignore exclude intentionally-vulnerable fixtures and
@@ -58,8 +56,6 @@ jobs:
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

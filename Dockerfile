@@ -11,7 +11,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Semgrep
-RUN pip3 install --no-cache-dir semgrep==1.87.0
+ENV SEMGREP_VENV=/opt/semgrep
+ENV PATH="${SEMGREP_VENV}/bin:${PATH}"
+RUN python3 -m venv "$SEMGREP_VENV" && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir semgrep==1.87.0
 
 # Verify Semgrep installation
 RUN semgrep --version
