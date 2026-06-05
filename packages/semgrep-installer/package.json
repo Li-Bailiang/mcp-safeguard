@@ -1,6 +1,6 @@
 {
   "name": "@mcp-safeguard/semgrep-installer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Automatic Semgrep installer for MCP-Safeguard",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

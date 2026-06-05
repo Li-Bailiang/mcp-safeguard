@@ -1,6 +1,6 @@
 {
   "name": "@mcp-safeguard/config-strict",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Strict configuration preset for MCP-Safeguard with maximum security checks",
   "main": "index.js",
   "keywords": ["mcp", "security", "config", "strict"],

@@ -60,7 +60,7 @@ describe('mcp-safeguard CLI', () => {
   it('prints the version and exits 0', async () => {
     const { code, stdout } = await run(['--version']);
     assert.equal(code, 0);
-    assert.match(stdout, /0\.1\.0/);
+    assert.match(stdout, /0\.1\.1/);
   });
 
   it('shows top-level help listing the scan command', async () => {

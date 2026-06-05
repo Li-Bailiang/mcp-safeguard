@@ -226,7 +226,7 @@ function formatError(error: any): string {
 program
   .name('mcp-safeguard')
   .description('Security scanner for Model Context Protocol servers')
-  .version('0.1.0');
+  .version('0.1.1');
 
 program
   .command('scan')

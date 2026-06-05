@@ -1,6 +1,6 @@
 {
   "name": "@mcp-safeguard/config-minimal",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Minimal configuration preset for MCP-Safeguard with only critical security checks",
   "main": "index.js",
   "keywords": ["mcp", "security", "config", "minimal"],

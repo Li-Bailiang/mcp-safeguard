@@ -1,6 +1,6 @@
 {
   "name": "@mcp-safeguard/runtime",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Runtime protection SDK for MCP servers with tool call interception, rate limiting, and prompt injection detection",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
