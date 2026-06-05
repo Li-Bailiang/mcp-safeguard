@@ -523,6 +523,20 @@ server.setRequestHandler('tools/call', async (request) => {
 
 ---
 
+## 🤖 Claude Code Skill
+
+This repository includes a Claude Code project skill at
+[`.claude/skills/mcp-safeguard/`](./.claude/skills/mcp-safeguard/) to help AI
+assistants run MCP-Safeguard, explain findings, suggest minimal fixes, and add
+GitHub Actions scanning. Open the repo in Claude Code and ask it to scan an MCP
+server or wire MCP-Safeguard into CI.
+
+The skill drives the published `@mcp-safeguard/cli` package; it does not
+reimplement scanning logic and never needs passwords, OTP codes, recovery codes,
+or API secrets.
+
+---
+
 ## 🐳 Docker Support
 
 ```bash
@@ -620,7 +634,7 @@ We welcome contributions! Help make MCP security better for everyone.
 - ✅ GitHub composite action + SARIF upload
 
 ### Next
-- [ ] Publish to npm
+- [x] Publish to npm
 - [ ] Baseline / diff comparison (track improvements over time)
 - [ ] VS Code extension for real-time scanning
 - [ ] Web dashboard for results visualization

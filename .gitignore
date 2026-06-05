@@ -15,7 +15,11 @@ coverage/
 .env
 .env.local
 .env.*.local
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/mcp-safeguard/
+!.claude/skills/mcp-safeguard/**
 
 # Temporary files
 tmp/
