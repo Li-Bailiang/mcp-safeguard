@@ -43,17 +43,16 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    # NOTE: pnpm must be installed BEFORE actions/setup-node runs, otherwise
-    # `cache: 'pnpm'` fails because setup-node cannot find the pnpm binary.
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        package_json_file: ${{ github.action_path }}/package.json
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+
+    - name: Install pnpm
+      shell: bash
+      run: |
+        corepack enable
+        corepack prepare pnpm@9.15.9 --activate
 
     # Build the CLI from this action's checked-out ref so users get exactly the
     # version they selected in `uses: owner/repo@ref`.
