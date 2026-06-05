@@ -1,0 +1,83 @@
+rules:
+  - id: mcp-suspicious-package-name
+    languages: [javascript, typescript]
+    message: Package name similar to popular MCP packages (potential typosquatting)
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              require("mcp-sevrer")
+          - pattern: |
+              require("mcp-clinet")
+          - pattern: |
+              require("mcps-server")
+          - pattern: |
+              import $X from "mcp-sevrer"
+          - pattern: |
+              import $X from "mcp-clinet"
+    metadata:
+      category: typosquatting
+      subcategory:
+        - package-confusion
+      confidence: high
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-506"
+
+  - id: mcp-python-typosquatting
+    languages: [python]
+    message: Suspicious package import (potential typosquatting)
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              import mcpserver
+          - pattern: |
+              from mcpserver import $X
+    metadata:
+      category: typosquatting
+      subcategory:
+        - package-confusion
+      confidence: medium
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-506"
+
+  - id: mcp-namespace-confusion
+    languages: [javascript, typescript]
+    message: Package using confusing namespace similar to official MCP packages
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: |
+              require("@modelcontextprotocol/...")
+          - pattern: |
+              require("@mcp-official/...")
+    metadata:
+      category: typosquatting
+      subcategory:
+        - namespace-confusion
+      confidence: low
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-506"
+
+  - id: mcp-homoglyph-attack
+    languages: [javascript, typescript]
+    message: Package name contains unicode homoglyphs
+    severity: WARNING
+    patterns:
+      - pattern: |
+          require("mсp-server")
+    metadata:
+      category: typosquatting
+      subcategory:
+        - homoglyph
+      confidence: high
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-1007"

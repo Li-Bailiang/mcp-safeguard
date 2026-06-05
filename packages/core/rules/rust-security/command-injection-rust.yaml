@@ -1,0 +1,77 @@
+rules:
+  - id: rust-command-injection-format
+    languages: [rust]
+    message: Command execution with formatted string and user input is vulnerable to command injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              Command::new($CMD).arg(format!(...))
+          - pattern: |
+              Command::new(format!(...))
+          - pattern: |
+              Command::new($CMD + ...)
+    metadata:
+      category: rust-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-78"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://doc.rust-lang.org/std/process/struct.Command.html"
+      description: "Pass user input as separate arguments using .arg() instead of formatting into the command string"
+
+  - id: rust-shell-command-injection
+    languages: [rust]
+    message: Executing shell command with user input enables command injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              Command::new("sh").arg("-c").arg($CMD)
+          - pattern: |
+              Command::new("bash").arg("-c").arg($CMD)
+          - pattern: |
+              Command::new("cmd").arg("/c").arg($CMD)
+          - pattern: |
+              Command::new("powershell").arg("-Command").arg($CMD)
+    metadata:
+      category: rust-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-78"
+      owasp:
+        - "A03:2021 - Injection"
+      description: "Avoid shell invocation with user input. Use Command::new() with direct program execution and separate arguments"
+
+  - id: rust-command-output-string
+    languages: [rust]
+    message: Constructing command from string may include unsanitized user input
+    severity: WARNING
+    patterns:
+      - pattern: |
+          Command::new($VAR)
+      - metavariable-pattern:
+          metavariable: $VAR
+          patterns:
+            - pattern-not: |
+                "..."
+    metadata:
+      category: rust-security
+      subcategory:
+        - injection
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-78"
+      description: "Validate and sanitize command names from variables, prefer hardcoded command names"

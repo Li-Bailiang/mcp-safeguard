@@ -1,0 +1,224 @@
+rules:
+  - id: k8s-privileged-pod
+    languages: [yaml]
+    message: Pod or container configured with privileged mode enabled
+    severity: ERROR
+    patterns:
+      - pattern: |
+          privileged: true
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-250"
+      owasp:
+        - "A01:2021"
+
+  - id: k8s-host-network
+    languages: [yaml]
+    message: Pod configured with hostNetwork enabled, allowing access to host network namespace
+    severity: ERROR
+    patterns:
+      - pattern: |
+          hostNetwork: true
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-653"
+      owasp:
+        - "A05:2021"
+
+  - id: k8s-host-path-mount
+    languages: [yaml]
+    message: Pod uses hostPath volume mount which can expose host filesystem
+    severity: ERROR
+    patterns:
+      # Match a hostPath volume regardless of its position within the volume
+      # entry (it commonly follows a `name:` key, not as the first key).
+      - pattern: |
+          hostPath:
+            path: $PATH
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-552"
+      owasp:
+        - "A01:2021"
+
+  - id: k8s-no-resource-limits
+    languages: [yaml]
+    message: Container missing resource limits which can lead to resource exhaustion
+    severity: WARNING
+    patterns:
+      - pattern: |
+          containers:
+            - ...
+            - name: $NAME
+              image: $IMAGE
+      - pattern-not: |
+          containers:
+            - ...
+            - name: $NAME
+              image: $IMAGE
+              resources:
+                limits:
+                  ...
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-400"
+      owasp:
+        - "A04:2021"
+
+  - id: k8s-no-security-context
+    languages: [yaml]
+    message: Pod or container missing securityContext configuration
+    severity: WARNING
+    patterns:
+      - pattern: |
+          spec:
+            containers:
+              - ...
+      - pattern-not: |
+          spec:
+            securityContext:
+              ...
+            containers:
+              - ...
+      - pattern-not: |
+          spec:
+            containers:
+              - securityContext:
+                  ...
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-250"
+
+  - id: k8s-root-containers
+    languages: [yaml]
+    message: Container configured to run as root user (runAsUser 0 or missing)
+    severity: ERROR
+    patterns:
+      - pattern: |
+          runAsUser: 0
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-250"
+      owasp:
+        - "A01:2021"
+
+  - id: k8s-overly-permissive-rbac
+    languages: [yaml]
+    message: RBAC role with overly permissive wildcard (*) verbs
+    severity: ERROR
+    patterns:
+      # Match wildcard verbs in both inline (`verbs: ["*"]`) and block-list form,
+      # at any position within the rule entry.
+      - pattern-regex: 'verbs:\s*(\[\s*"\*"\s*\]|(\n\s*-\s*"?\*"?))'
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-269"
+      owasp:
+        - "A01:2021"
+
+  - id: k8s-default-service-account
+    languages: [yaml]
+    message: Pod using default service account which may have unnecessary permissions
+    severity: WARNING
+    patterns:
+      - pattern: |
+          serviceAccountName: default
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-250"
+      owasp:
+        - "A05:2021"
+
+  - id: k8s-no-network-policy
+    languages: [yaml]
+    message: Namespace or deployment without NetworkPolicy may allow unrestricted network access
+    severity: WARNING
+    patterns:
+      - pattern: |
+          kind: Deployment
+      - pattern-not: |
+          kind: NetworkPolicy
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: LOW
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-923"
+      owasp:
+        - "A05:2021"
+
+  - id: k8s-secret-in-env
+    languages: [yaml]
+    message: Secret value directly exposed in environment variable instead of using secretKeyRef
+    severity: ERROR
+    patterns:
+      - pattern: |
+          env:
+            - ...
+            - name: $NAME
+              value: $VALUE
+      - metavariable-regex:
+          metavariable: $NAME
+          regex: .*(PASSWORD|SECRET|TOKEN|KEY|API_KEY|APIKEY).*
+    metadata:
+      category: infrastructure
+      subcategory:
+        - kubernetes-security
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-798"
+      owasp:
+        - "A02:2021"

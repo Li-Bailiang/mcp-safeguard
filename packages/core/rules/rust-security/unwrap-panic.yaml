@@ -1,0 +1,70 @@
+rules:
+  - id: rust-unwrap-panic
+    languages: [rust]
+    message: Using .unwrap() can cause panics. Use proper error handling with ? or match instead
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: $X.unwrap()
+          - pattern: $X.expect(...)
+      - pattern-not-inside: |
+          #[cfg(test)]
+          ...
+      - pattern-not-inside: |
+          #[test]
+          ...
+      - pattern-not-inside: |
+          fn main() { ... }
+    metadata:
+      category: rust-security
+      subcategory:
+        - error-handling
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-703"
+      owasp:
+        - "A04:2021 - Insecure Design"
+      references:
+        - "https://doc.rust-lang.org/book/ch09-00-error-handling.html"
+      description: "Use Result type with ? operator or match for proper error handling instead of unwrap/expect"
+
+  - id: rust-unwrap-or-default-on-result
+    languages: [rust]
+    message: Using .unwrap_or_default() on Result silently ignores errors
+    severity: WARNING
+    patterns:
+      - pattern: $X.unwrap_or_default()
+      - pattern-not-inside: |
+          #[cfg(test)]
+          ...
+    metadata:
+      category: rust-security
+      subcategory:
+        - error-handling
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-391"
+      description: "Handle Result errors explicitly rather than using unwrap_or_default() which hides failures"
+
+  - id: rust-unwrap-unchecked
+    languages: [rust]
+    message: Using unwrap_unchecked() bypasses safety checks and can cause undefined behavior
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $X.unwrap_unchecked()
+          - pattern: $X.unwrap_err_unchecked()
+    metadata:
+      category: rust-security
+      subcategory:
+        - unsafe-code
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: LOW
+      cwe:
+        - "CWE-252"
+      description: "Avoid unwrap_unchecked() unless absolutely necessary and documented with SAFETY comments"

@@ -1,0 +1,77 @@
+rules:
+  - id: java-insecure-deserialization
+    languages: [java]
+    message: ObjectInputStream deserialization without validation is vulnerable to deserialization attacks
+    severity: ERROR
+    patterns:
+      - pattern: new ObjectInputStream($INPUT)
+      - pattern-not-inside: |
+          class $CLASS extends ObjectInputStream {
+            ...
+            protected Class<?> resolveClass(...) { ... }
+            ...
+          }
+    metadata:
+      category: java-security
+      subcategory:
+        - deserialization
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-502"
+      owasp:
+        - "A08:2021 - Software and Data Integrity Failures"
+      references:
+        - "https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data"
+      description: "Use ValidatingObjectInputStream or override resolveClass() to whitelist allowed classes"
+
+  - id: java-unsafe-readobject
+    languages: [java]
+    message: readObject() without validation allows arbitrary object deserialization
+    severity: ERROR
+    patterns:
+      - pattern: $OIS.readObject()
+      - pattern-not-inside: |
+          if (...) {
+            ...
+            $OIS.readObject();
+            ...
+          }
+    metadata:
+      category: java-security
+      subcategory:
+        - deserialization
+      confidence: MEDIUM
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-502"
+      owasp:
+        - "A08:2021 - Software and Data Integrity Failures"
+      references:
+        - "https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data"
+      description: "Validate object type and content after deserialization to prevent arbitrary code execution"
+
+  - id: java-xmldecoder-deserialization
+    languages: [java]
+    message: XMLDecoder is vulnerable to arbitrary code execution during deserialization
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: new XMLDecoder($INPUT)
+          - pattern: new XMLDecoder($INPUT, ...)
+    metadata:
+      category: java-security
+      subcategory:
+        - deserialization
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-502"
+      owasp:
+        - "A08:2021 - Software and Data Integrity Failures"
+      references:
+        - "https://owasp.org/www-community/vulnerabilities/Deserialization_of_untrusted_data"
+      description: "Avoid XMLDecoder for untrusted input. Use JSON or safer serialization formats instead"

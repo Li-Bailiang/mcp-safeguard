@@ -1,0 +1,90 @@
+rules:
+  - id: rust-ignored-result
+    languages: [rust]
+    message: Result type is ignored without error handling
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              let _ = $EXPR;
+          - pattern: |
+              $EXPR;
+      - metavariable-pattern:
+          metavariable: $EXPR
+          patterns:
+            - pattern-either:
+                - pattern: |
+                    $X.write(...)
+                - pattern: |
+                    $X.read(...)
+                - pattern: |
+                    $X.send(...)
+                - pattern: |
+                    $X.recv(...)
+                - pattern: |
+                    File::create(...)
+                - pattern: |
+                    File::open(...)
+                - pattern: |
+                    fs::write(...)
+                - pattern: |
+                    fs::read(...)
+      - pattern-not-inside: |
+          #[cfg(test)]
+          ...
+    metadata:
+      category: rust-security
+      subcategory:
+        - error-handling
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-252"
+      owasp:
+        - "A04:2021 - Insecure Design"
+      references:
+        - "https://doc.rust-lang.org/book/ch09-00-error-handling.html"
+      description: "Handle Result types with ? operator, match, or explicit error handling. Use #[must_use] attribute to enforce checking"
+
+  - id: rust-ok-unwrap-chain
+    languages: [rust]
+    message: Chaining .ok().unwrap() defeats the purpose of error handling
+    severity: WARNING
+    patterns:
+      - pattern: |
+          $X.ok().unwrap()
+    metadata:
+      category: rust-security
+      subcategory:
+        - error-handling
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-703"
+      description: "Use ? operator or proper match instead of converting Result to Option just to unwrap"
+
+  - id: rust-error-ignored-underscore
+    languages: [rust]
+    message: Error explicitly ignored with underscore pattern
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: |
+              if let Ok(_) = $EXPR { ... }
+          - pattern: |
+              match $EXPR {
+                Ok(_) => ...,
+                Err(_) => {},
+              }
+    metadata:
+      category: rust-security
+      subcategory:
+        - error-handling
+      confidence: LOW
+      impact: LOW
+      likelihood: HIGH
+      cwe:
+        - "CWE-391"
+      description: "Consider logging or handling errors instead of silently ignoring them"

@@ -1,0 +1,59 @@
+rules:
+  # Cross-server shadowing / confused deputy: a tool description tries to influence
+  # how the model uses *other* tools or servers ("use this instead of X", "ignore the
+  # official tool", "whenever the user asks ... use this tool"). In a multi-server
+  # client this lets one server hijack another's tools.
+  - id: mcp-cross-server-shadowing
+    languages: [javascript, typescript]
+    message: >-
+      MCP tool description references or overrides other tools/servers. A tool must
+      only describe itself; instructions about other tools enable cross-server
+      shadowing (one server hijacking another's tools).
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $S.tool($NAME, $DESC, ...)
+          - pattern: '$S.registerTool($NAME, {..., description: $DESC, ...}, ...)'
+          - pattern: '$S.tool($NAME, {..., description: $DESC, ...}, ...)'
+      - metavariable-regex:
+          metavariable: $DESC
+          regex: '(?i).*(instead\s+of\s+(the\s+|using\s+)?[\w\- ]*\btool|do\s+not\s+use\s+the\b|use\s+this\s+tool\s+(instead|whenever|for\s+all)|override\s+the\b|ignore\s+the\s+(official|other|real|existing)|shadow\s+the\b).*'
+    metadata:
+      category: mcp-threats
+      subcategory:
+        - cross-server-shadowing
+        - confused-deputy
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-441"
+      references:
+        - https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks
+
+  - id: mcp-python-cross-server-shadowing
+    languages: [python]
+    message: >-
+      MCP tool description references or overrides other tools/servers (cross-server
+      shadowing / confused deputy). A tool must only describe itself.
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $S.tool(..., description=$DESC, ...)
+          - pattern: Tool(..., description=$DESC, ...)
+          - pattern: types.Tool(..., description=$DESC, ...)
+      - metavariable-regex:
+          metavariable: $DESC
+          regex: '(?i).*(instead\s+of\s+(the\s+|using\s+)?[\w\- ]*\btool|do\s+not\s+use\s+the\b|use\s+this\s+tool\s+(instead|whenever|for\s+all)|override\s+the\b|ignore\s+the\s+(official|other|real|existing)|shadow\s+the\b).*'
+    metadata:
+      category: mcp-threats
+      subcategory:
+        - cross-server-shadowing
+        - confused-deputy
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-441"
+      references:
+        - https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks

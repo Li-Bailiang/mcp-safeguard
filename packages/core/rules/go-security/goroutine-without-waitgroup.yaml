@@ -1,0 +1,80 @@
+rules:
+  - id: go-goroutine-no-sync
+    languages: [go]
+    message: Goroutine started without synchronization mechanism (WaitGroup/channel), may cause race conditions or premature exit
+    severity: WARNING
+    patterns:
+      - pattern: |
+          func $FUNC(...) {
+            ...
+            go $GOFUNC(...)
+            ...
+          }
+      - pattern-not-inside: |
+          func $FUNC(...) {
+            ...
+            $WG.Add(...)
+            ...
+            go func(...) {
+              defer $WG.Done()
+              ...
+            }(...)
+            ...
+            $WG.Wait()
+          }
+      - pattern-not-inside: |
+          func $FUNC(...) {
+            ...
+            go $GOFUNC(...)
+            ...
+            <-$CH
+            ...
+          }
+    metadata:
+      category: go-security
+      subcategory:
+        - concurrency
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-362"
+      references:
+        - "https://pkg.go.dev/sync#WaitGroup"
+      description: "Use sync.WaitGroup or channels to synchronize goroutines and ensure they complete before function returns"
+
+  - id: go-goroutine-in-main-no-sync
+    languages: [go]
+    message: Goroutine in main() without synchronization will not complete before program exits
+    severity: ERROR
+    patterns:
+      - pattern: |
+          func main() {
+            ...
+            go $FUNC(...)
+            ...
+          }
+      - pattern-not: |
+          func main() {
+            ...
+            go $FUNC(...)
+            ...
+            $WG.Wait()
+          }
+      - pattern-not: |
+          func main() {
+            ...
+            go $FUNC(...)
+            ...
+            <-$CH
+            ...
+          }
+    metadata:
+      category: go-security
+      subcategory:
+        - concurrency
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-362"

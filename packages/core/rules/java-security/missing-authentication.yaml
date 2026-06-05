@@ -1,0 +1,173 @@
+rules:
+  - id: java-servlet-no-auth
+    languages: [java]
+    message: Servlet method without authentication check may allow unauthorized access
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              protected void doGet(HttpServletRequest $REQ, HttpServletResponse $RESP) {
+                ...
+              }
+          - pattern: |
+              protected void doPost(HttpServletRequest $REQ, HttpServletResponse $RESP) {
+                ...
+              }
+          - pattern: |
+              protected void doPut(HttpServletRequest $REQ, HttpServletResponse $RESP) {
+                ...
+              }
+          - pattern: |
+              protected void doDelete(HttpServletRequest $REQ, HttpServletResponse $RESP) {
+                ...
+              }
+      - pattern-not-inside: |
+          protected void $METHOD(HttpServletRequest $REQ, HttpServletResponse $RESP) {
+            ...
+            $REQ.getSession(...);
+            ...
+          }
+      - pattern-not-inside: |
+          protected void $METHOD(HttpServletRequest $REQ, HttpServletResponse $RESP) {
+            ...
+            $REQ.isUserInRole(...);
+            ...
+          }
+      - pattern-not-inside: |
+          @WebServlet(...)
+          @ServletSecurity(...)
+          class $CLASS extends HttpServlet {
+            ...
+          }
+    metadata:
+      category: java-security
+      subcategory:
+        - authentication
+      confidence: MEDIUM
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-306"
+      owasp:
+        - "A07:2021 - Identification and Authentication Failures"
+      references:
+        - "https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication"
+      description: "Implement authentication checks in servlet methods or use @ServletSecurity annotation"
+
+  - id: java-jax-rs-no-auth
+    languages: [java]
+    message: JAX-RS endpoint without authentication may allow unauthorized access
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @GET
+              public $RET $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @POST
+              public $RET $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @PUT
+              public $RET $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @DELETE
+              public $RET $METHOD(...) {
+                ...
+              }
+      - pattern-not-inside: |
+          @RolesAllowed(...)
+          public $RET $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @PermitAll
+          public $RET $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @DenyAll
+          public $RET $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @Path(...)
+          @RolesAllowed(...)
+          class $CLASS {
+            ...
+          }
+    metadata:
+      category: java-security
+      subcategory:
+        - authentication
+      confidence: MEDIUM
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-306"
+      owasp:
+        - "A07:2021 - Identification and Authentication Failures"
+      references:
+        - "https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication"
+      description: "Add @RolesAllowed, @PermitAll, or @DenyAll annotations to JAX-RS endpoints"
+
+  - id: java-spring-controller-no-auth
+    languages: [java]
+    message: Spring controller method without security annotation may allow unauthorized access
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @RequestMapping(...)
+              public $RET $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @GetMapping(...)
+              public $RET $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @PostMapping(...)
+              public $RET $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @PutMapping(...)
+              public $RET $METHOD(...) {
+                ...
+              }
+          - pattern: |
+              @DeleteMapping(...)
+              public $RET $METHOD(...) {
+                ...
+              }
+      - pattern-not-inside: |
+          @PreAuthorize(...)
+          public $RET $METHOD(...) {
+            ...
+          }
+      - pattern-not-inside: |
+          @Secured(...)
+          public $RET $METHOD(...) {
+            ...
+          }
+    metadata:
+      category: java-security
+      subcategory:
+        - authentication
+      confidence: LOW
+      impact: CRITICAL
+      likelihood: LOW
+      cwe:
+        - "CWE-306"
+      owasp:
+        - "A07:2021 - Identification and Authentication Failures"
+      references:
+        - "https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication"
+      description: "Consider adding @PreAuthorize or @Secured annotation to Spring controller methods"

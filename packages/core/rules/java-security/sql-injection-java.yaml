@@ -1,0 +1,52 @@
+rules:
+  - id: java-sql-injection-concat
+    languages: [java]
+    message: SQL query built with string concatenation is vulnerable to SQL injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $STMT.executeQuery($QUERY + ...)
+          - pattern: $STMT.executeUpdate($QUERY + ...)
+          - pattern: $STMT.execute($QUERY + ...)
+          - pattern: $CONN.prepareStatement($QUERY + ...)
+          - pattern: $CONN.prepareCall($QUERY + ...)
+    metadata:
+      category: java-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-89"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+      description: "Use PreparedStatement with parameterized queries instead of string concatenation to prevent SQL injection"
+
+  - id: java-sql-injection-format
+    languages: [java]
+    message: SQL query built with String.format() is vulnerable to SQL injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $STMT.executeQuery(String.format(...))
+          - pattern: $STMT.executeUpdate(String.format(...))
+          - pattern: $STMT.execute(String.format(...))
+          - pattern: $CONN.prepareStatement(String.format(...))
+          - pattern: $CONN.prepareCall(String.format(...))
+    metadata:
+      category: java-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-89"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+      description: "Use PreparedStatement with parameterized queries instead of String.format() to prevent SQL injection"

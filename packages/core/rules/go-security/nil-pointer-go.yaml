@@ -1,0 +1,65 @@
+rules:
+  - id: go-nil-pointer-dereference
+    languages: [go]
+    message: Potential nil pointer dereference without nil check
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - patterns:
+              - pattern: |
+                  $X, $OK := $MAP[$KEY]
+                  ...
+                  $X.$METHOD(...)
+              - pattern-not: |
+                  $X, $OK := $MAP[$KEY]
+                  if $OK {
+                    ...
+                  }
+          - patterns:
+              - pattern: |
+                  $X := $MAP[$KEY]
+                  ...
+                  $X.$FIELD
+              - pattern-not: |
+                  $X := $MAP[$KEY]
+                  if $X != nil {
+                    ...
+                  }
+    metadata:
+      category: go-security
+      subcategory:
+        - nil-dereference
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-476"
+      references:
+        - "https://go.dev/doc/faq#nil_error"
+      description: "Check for nil before dereferencing pointers or calling methods on values from maps"
+
+  - id: go-nil-pointer-return
+    languages: [go]
+    message: Potential nil pointer dereference on function return without checking error
+    severity: WARNING
+    patterns:
+      - pattern: |
+          $X, $ERR := $FUNC(...)
+          ...
+          $X.$METHOD(...)
+      - pattern-not: |
+          $X, $ERR := $FUNC(...)
+          if $ERR != nil {
+            ...
+          }
+          ...
+          $X.$METHOD(...)
+    metadata:
+      category: go-security
+      subcategory:
+        - nil-dereference
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-476"

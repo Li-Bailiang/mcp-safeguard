@@ -1,0 +1,154 @@
+rules:
+  - id: mcp-resource-exposes-env
+    languages: [javascript, typescript]
+    message: MCP resource exposing environment variables
+    severity: ERROR
+    patterns:
+      - pattern: |
+          server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+            resources: [{
+              ...
+            }]
+          }))
+          ...
+          process.env
+    metadata:
+      category: context-overshare
+      subcategory:
+        - environment-exposure
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-200"
+      owasp:
+        - "A01:2021"
+
+  - id: mcp-excessive-file-access
+    languages: [javascript, typescript]
+    message: MCP resource providing excessive file system access
+    severity: WARNING
+    patterns:
+      - pattern: |
+          readdir("/", ...)
+    metadata:
+      category: context-overshare
+      subcategory:
+        - excessive-access
+      confidence: low
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-552"
+
+  - id: mcp-python-env-exposure
+    languages: [python]
+    message: Exposing environment variables through MCP
+    severity: ERROR
+    patterns:
+      - pattern: |
+          os.environ
+    metadata:
+      category: context-overshare
+      subcategory:
+        - environment-exposure
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-200"
+
+  - id: mcp-credential-in-prompt
+    languages: [javascript, typescript]
+    message: Credentials included in prompt template
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const prompt = `... ${process.env.API_KEY} ...`;
+          - pattern: |
+              const prompt = `... ${apiKey} ...`;
+    metadata:
+      category: context-overshare
+      subcategory:
+        - credential-exposure
+      confidence: high
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-522"
+
+  - id: mcp-excessive-logging
+    languages: [javascript, typescript]
+    message: Potentially sensitive data logged without redaction
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: console.log($DATA)
+          - pattern: console.error($DATA)
+          - pattern: console.debug($DATA)
+          - pattern: logger.info($DATA)
+          - pattern: logger.debug($DATA)
+      # Only flag logs that reference something sensitive — logging arbitrary
+      # values (the common case) is not a finding.
+      - metavariable-regex:
+          metavariable: $DATA
+          regex: '(?i).*(password|passwd|secret|token|api[_-]?key|apikey|credential|process\.env|authorization|private[_-]?key|session[_-]?(id|token)).*'
+    metadata:
+      category: context-overshare
+      subcategory:
+        - excessive-logging
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-532"
+
+  - id: mcp-python-excessive-logging
+    languages: [python]
+    message: Potentially sensitive data logged without redaction
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: print($DATA)
+          - pattern: logging.info($DATA)
+          - pattern: logging.debug($DATA)
+      - metavariable-regex:
+          metavariable: $DATA
+          regex: '(?i).*(password|passwd|secret|token|api[_-]?key|apikey|credential|os\.environ|authorization|private[_-]?key|session[_-]?(id|token)).*'
+    metadata:
+      category: context-overshare
+      subcategory:
+        - excessive-logging
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-532"
+
+  - id: mcp-pii-exposure
+    languages: [javascript, typescript]
+    message: Potential PII exposure in MCP response
+    severity: WARNING
+    patterns:
+      - pattern: |
+          return {
+            content: [{
+              type: "text",
+              text: $DATA
+            }]
+          }
+      # Only flag when the returned value references PII-like data; returning an
+      # arbitrary text result is the normal case and must not be flagged.
+      - metavariable-regex:
+          metavariable: $DATA
+          regex: '(?i).*(ssn|social[_-]?security|passport|credit[_-]?card|\bemail\b|\bphone\b|\baddress\b|\bdob\b|date[_-]?of[_-]?birth|patient|medical|\bpii\b).*'
+    metadata:
+      category: context-overshare
+      subcategory:
+        - pii-exposure
+      confidence: low
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-359"

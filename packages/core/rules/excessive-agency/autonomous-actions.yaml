@@ -1,0 +1,274 @@
+rules:
+  - id: mcp-tool-no-confirmation
+    languages: [javascript, typescript]
+    message: Destructive MCP tool without user confirmation
+    severity: ERROR
+    patterns:
+      - pattern: |
+          server.setRequestHandler(CallToolRequestSchema, async (request) => {
+            ...
+            if (request.params.name === $DESTRUCTIVE) {
+              ...
+            }
+          })
+      - pattern-not-inside: |
+          if ($APPROVAL) {
+            ...
+          }
+      - pattern-not-inside: |
+          await userApproval(...)
+          ...
+      - pattern-not-inside: |
+          if (await confirm(...)) {
+            ...
+          }
+      - pattern-not-inside: |
+          const approved = await askUser(...)
+          ...
+    metadata:
+      category: excessive-agency
+      subcategory:
+        - missing-confirmation
+      confidence: low
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-862"
+
+  - id: mcp-automatic-file-deletion
+    languages: [javascript, typescript]
+    message: Automatic file deletion without confirmation
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              fs.unlink($PATH, ...)
+          - pattern: |
+              fs.unlinkSync($PATH)
+          - pattern: |
+              fs.rm($PATH, { recursive: true, ... })
+      - pattern-not-inside: |
+          if ($APPROVAL) {
+            ...
+          }
+      - pattern-not-inside: |
+          await userApproval(...)
+          ...
+      - pattern-not-inside: |
+          if (await confirm(...)) {
+            ...
+          }
+      - pattern-not-inside: |
+          const approved = await askUser(...)
+          ...
+      # Guard-clause idiom: a confirmation check that throws before proceeding.
+      - pattern-not-inside: |
+          if (!$C) { throw $E; }
+          ...
+      - pattern-not-inside: |
+          function $F(..., confirmed, ...) { ... }
+      - pattern-not-inside: |
+          ($A, confirmed, ...) => { ... }
+    metadata:
+      category: excessive-agency
+      subcategory:
+        - destructive-action
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-732"
+
+  - id: mcp-python-automatic-deletion
+    languages: [python]
+    message: Automatic file/directory deletion without confirmation
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: os.remove($PATH)
+          - pattern: os.unlink($PATH)
+          - pattern: shutil.rmtree($PATH)
+      - pattern-not-inside: |
+          if $APPROVAL:
+            ...
+      - pattern-not-inside: |
+          user_approval(...)
+          ...
+      - pattern-not-inside: |
+          if confirm(...):
+            ...
+      - pattern-not-inside: |
+          approved = ask_user(...)
+          ...
+      # Guard-clause idiom: a confirmation check that raises before proceeding.
+      - pattern-not-inside: |
+          if not $C:
+              raise $E
+          ...
+      - pattern-not-inside: |
+          def $F(..., confirmed, ...):
+              ...
+      - pattern-not-inside: |
+          def $F(..., confirmed=..., ...):
+              ...
+    metadata:
+      category: excessive-agency
+      subcategory:
+        - destructive-action
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-732"
+
+  - id: mcp-unrestricted-network-access
+    languages: [javascript, typescript]
+    message: MCP tool with unrestricted network access
+    severity: WARNING
+    patterns:
+      - pattern: |
+          async function $TOOL(...) {
+            ...
+            await fetch($URL);
+            ...
+          }
+      # The match is the whole function, so guards must be expressed as
+      # pattern-not on the *function that also contains the guard* (a
+      # pattern-not-inside cannot see a guard nested within the match).
+      - pattern-not: |
+          async function $TOOL(...) {
+            ...
+            if (isAllowedUrl(...)) { ... }
+            ...
+          }
+      - pattern-not: |
+          async function $TOOL(...) {
+            ...
+            if ($U.startsWith(...)) { ... }
+            ...
+          }
+      - pattern-not: |
+          async function $TOOL(...) {
+            ...
+            if (!$ALLOW.includes(...)) { throw $E; }
+            ...
+          }
+    metadata:
+      category: excessive-agency
+      subcategory:
+        - network-access
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-923"
+
+  - id: mcp-automatic-code-execution
+    languages: [javascript, typescript]
+    message: Automatic code execution without user approval
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              exec($CMD)
+          - pattern: |
+              spawn($CMD, ...)
+      - pattern-not-inside: |
+          if ($APPROVAL) {
+            ...
+          }
+      - pattern-not-inside: |
+          await userApproval(...)
+          ...
+      - pattern-not-inside: |
+          if (await confirm(...)) {
+            ...
+          }
+    metadata:
+      category: excessive-agency
+      subcategory:
+        - automatic-execution
+      confidence: medium
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-78"
+
+  - id: mcp-python-automatic-execution
+    languages: [python]
+    message: Automatic command execution without user approval
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: os.system($CMD)
+          - pattern: subprocess.call($CMD, ...)
+      - pattern-not-inside: |
+          if $APPROVAL:
+            ...
+      - pattern-not-inside: |
+          user_approval(...)
+          ...
+      - pattern-not-inside: |
+          if confirm(...):
+            ...
+    metadata:
+      category: excessive-agency
+      subcategory:
+        - automatic-execution
+      confidence: medium
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-78"
+
+  - id: mcp-unrestricted-file-write
+    languages: [javascript, typescript]
+    message: Unrestricted file write operation
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              writeFile($PATH, $DATA, ...)
+          - pattern: |
+              writeFileSync($PATH, $DATA)
+      - pattern-not-inside: |
+          if (isAllowedPath($PATH)) {
+            ...
+          }
+      - pattern-not-inside: |
+          if ($PATH.startsWith(ALLOWED_DIR)) {
+            ...
+          }
+    metadata:
+      category: excessive-agency
+      subcategory:
+        - unrestricted-write
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-73"
+
+  - id: mcp-python-unrestricted-write
+    languages: [python]
+    message: Unrestricted file write operation
+    severity: WARNING
+    patterns:
+      - pattern: |
+          with open($PATH, "w") as f:
+            f.write($DATA)
+      - pattern-not-inside: |
+          if is_allowed_path($PATH):
+            ...
+      - pattern-not-inside: |
+          if $PATH.startswith(...):
+            ...
+    metadata:
+      category: excessive-agency
+      subcategory:
+        - unrestricted-write
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-73"

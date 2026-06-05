@@ -1,0 +1,59 @@
+rules:
+  - id: go-context-cancel-not-called
+    languages: [go]
+    message: context.WithCancel() without defer cancel() will leak resources
+    severity: ERROR
+    patterns:
+      - pattern: |
+          $CTX, $CANCEL := context.WithCancel(...)
+          ...
+      - pattern-not: |
+          $CTX, $CANCEL := context.WithCancel(...)
+          defer $CANCEL()
+          ...
+    metadata:
+      category: go-security
+      subcategory:
+        - resource-leak
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-772"
+      references:
+        - "https://pkg.go.dev/context#WithCancel"
+      description: "Always defer cancel() after creating a cancellable context to prevent resource leaks"
+
+  - id: go-context-timeout-not-called
+    languages: [go]
+    message: context.WithTimeout() or WithDeadline() without defer cancel() will leak resources
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - patterns:
+              - pattern: |
+                  $CTX, $CANCEL := context.WithTimeout(...)
+                  ...
+              - pattern-not: |
+                  $CTX, $CANCEL := context.WithTimeout(...)
+                  defer $CANCEL()
+                  ...
+          - patterns:
+              - pattern: |
+                  $CTX, $CANCEL := context.WithDeadline(...)
+                  ...
+              - pattern-not: |
+                  $CTX, $CANCEL := context.WithDeadline(...)
+                  defer $CANCEL()
+                  ...
+    metadata:
+      category: go-security
+      subcategory:
+        - resource-leak
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-772"
+      references:
+        - "https://pkg.go.dev/context#WithTimeout"

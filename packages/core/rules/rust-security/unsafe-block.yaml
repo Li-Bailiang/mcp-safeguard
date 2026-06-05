@@ -1,0 +1,55 @@
+rules:
+  - id: rust-unsafe-without-comment
+    languages: [rust]
+    message: Unsafe block without safety documentation comment
+    severity: WARNING
+    patterns:
+      - pattern: |
+          unsafe { ... }
+      - pattern-not-inside: |
+          // SAFETY: ...
+          ...
+      - pattern-not-inside: |
+          /// SAFETY: ...
+          ...
+    metadata:
+      category: rust-security
+      subcategory:
+        - unsafe-code
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-758"
+      owasp:
+        - "A04:2021 - Insecure Design"
+      references:
+        - "https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html"
+      description: "All unsafe blocks should include a SAFETY comment explaining why the code is safe"
+
+  - id: rust-unsafe-function-without-comment
+    languages: [rust]
+    message: Unsafe function without safety documentation
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              unsafe fn $FUNC(...) { ... }
+          - pattern: |
+              pub unsafe fn $FUNC(...) { ... }
+      - pattern-not-inside: |
+          /// # Safety
+          ...
+      - pattern-not-inside: |
+          // SAFETY: ...
+          ...
+    metadata:
+      category: rust-security
+      subcategory:
+        - unsafe-code
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-758"
+      description: "Unsafe functions must document their safety requirements"

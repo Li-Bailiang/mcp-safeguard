@@ -1,0 +1,21 @@
+{
+  "extends": ["@mcp-safeguard/config-recommended"],
+  "rules": {
+    "indirect-prompt-injection": "error",
+    "excessive-agency": "warn",
+    "typosquatting": "off"
+  },
+  "ignore": [
+    "**/test/**",
+    "**/fixtures/**",
+    "node_modules/**"
+  ],
+  "severity": {
+    "failOn": "high"
+  },
+  "languages": ["javascript", "typescript", "python", "go"],
+  "output": {
+    "format": "json",
+    "path": "./reports/"
+  }
+}

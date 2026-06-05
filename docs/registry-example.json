@@ -1,0 +1,86 @@
+{
+  "version": "0.2.0",
+  "timestamp": "2026-06-03T00:00:00Z",
+  "description": "MCP Safeguard Security Rules Registry",
+  "repository": "https://github.com/Li-Bailiang/mcp-safeguard",
+  "rules": {
+    "indirect-injection/external-content": {
+      "version": "1.1.0",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/indirect-injection-external-content.yaml",
+      "size": 5812,
+      "updated": "2026-06-01T10:30:00Z",
+      "description": "Detects unsafe handling of external content that could enable indirect injection attacks"
+    },
+    "indirect-injection/user-controlled-data": {
+      "version": "1.0.2",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/indirect-injection-user-controlled-data.yaml",
+      "size": 4321,
+      "updated": "2026-05-28T14:20:00Z",
+      "description": "Identifies user-controlled data flowing into sensitive operations"
+    },
+    "context-overshare/sensitive-data-exposure": {
+      "version": "1.0.1",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/context-overshare-sensitive-data-exposure.yaml",
+      "size": 3876,
+      "updated": "2026-05-25T09:15:00Z",
+      "description": "Detects exposure of sensitive data in context sharing"
+    },
+    "excessive-agency/unrestricted-permissions": {
+      "version": "1.2.0",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/excessive-agency-unrestricted-permissions.yaml",
+      "size": 4567,
+      "updated": "2026-06-02T16:45:00Z",
+      "description": "Identifies MCP servers with overly broad permissions"
+    },
+    "dos/resource-exhaustion": {
+      "version": "1.0.0",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/dos-resource-exhaustion.yaml",
+      "size": 3234,
+      "updated": "2026-05-20T11:30:00Z",
+      "description": "Detects code patterns that could lead to resource exhaustion"
+    },
+    "supply-chain/typosquatting": {
+      "version": "1.1.1",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/supply-chain-typosquatting.yaml",
+      "size": 2987,
+      "updated": "2026-05-30T13:00:00Z",
+      "description": "Identifies potential typosquatting attempts in dependencies"
+    },
+    "shadow-server/unauthorized-registration": {
+      "version": "1.0.0",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/shadow-server-unauthorized-registration.yaml",
+      "size": 4123,
+      "updated": "2026-05-22T08:45:00Z",
+      "description": "Detects unauthorized MCP server registration attempts"
+    },
+    "infrastructure/insecure-config": {
+      "version": "1.1.0",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/infrastructure-insecure-config.yaml",
+      "size": 5234,
+      "updated": "2026-06-01T15:20:00Z",
+      "description": "Identifies insecure infrastructure configurations"
+    },
+    "go-security/sql-injection": {
+      "version": "1.0.1",
+      "checksum": "<unverified>",
+      "url": "https://github.com/Li-Bailiang/mcp-safeguard/releases/download/v0.2.0/go-security-sql-injection.yaml",
+      "size": 3789,
+      "updated": "2026-05-27T12:10:00Z",
+      "description": "Detects SQL injection vulnerabilities in Go code"
+    }
+  },
+  "metadata": {
+    "maintainer": "MCP Safeguard Team",
+    "license": "MIT",
+    "documentation": "https://github.com/Li-Bailiang/mcp-safeguard/blob/main/docs/rules.md",
+    "changelog": "https://github.com/Li-Bailiang/mcp-safeguard/blob/main/CHANGELOG.md"
+  }
+}

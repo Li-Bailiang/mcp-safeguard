@@ -1,0 +1,126 @@
+rules:
+  - id: java-weak-cipher-des
+    languages: [java]
+    message: DES encryption is cryptographically weak and should not be used
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance("DES")
+          - pattern: Cipher.getInstance("DES/...")
+          - pattern: Cipher.getInstance("DESede")
+          - pattern: Cipher.getInstance("DESede/...")
+    metadata:
+      category: java-security
+      subcategory:
+        - weak-crypto
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-327"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+      description: "Use AES-256-GCM or ChaCha20-Poly1305 instead of DES"
+
+  - id: java-weak-hash-md5
+    languages: [java]
+    message: MD5 is cryptographically broken and should not be used
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: MessageDigest.getInstance("MD5")
+          - pattern: MessageDigest.getInstance("md5")
+    metadata:
+      category: java-security
+      subcategory:
+        - weak-crypto
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-328"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+      description: "Use SHA-256, SHA-3, or bcrypt for password hashing"
+
+  - id: java-weak-hash-sha1
+    languages: [java]
+    message: SHA-1 is cryptographically weak and should not be used
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: MessageDigest.getInstance("SHA-1")
+          - pattern: MessageDigest.getInstance("SHA1")
+          - pattern: MessageDigest.getInstance("sha-1")
+          - pattern: MessageDigest.getInstance("sha1")
+    metadata:
+      category: java-security
+      subcategory:
+        - weak-crypto
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-328"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+      description: "Use SHA-256 or SHA-3 instead of SHA-1"
+
+  - id: java-weak-cipher-ecb
+    languages: [java]
+    message: ECB mode is insecure and should not be used
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance(".../ECB/...")
+          - pattern: Cipher.getInstance("AES")
+    metadata:
+      category: java-security
+      subcategory:
+        - weak-crypto
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-327"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+      description: "Use AES/GCM/NoPadding or AES/CBC/PKCS5Padding with random IV instead of ECB"
+
+  - id: java-insecure-random
+    languages: [java]
+    message: java.util.Random is not cryptographically secure
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: new Random()
+          - pattern: new Random($SEED)
+      - pattern-inside: |
+          class $CLASS {
+            ...
+          }
+      - metavariable-regex:
+          metavariable: $CLASS
+          regex: (?i).*(security|crypto|auth|token|session|password).*
+    metadata:
+      category: java-security
+      subcategory:
+        - weak-crypto
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-338"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"
+      description: "Use SecureRandom instead of Random for security-sensitive operations"

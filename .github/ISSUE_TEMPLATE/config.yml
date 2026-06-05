@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/mcp-safeguard/mcp-safeguard/tree/main/docs
+    about: Read the MCP-Safeguard documentation before opening an issue.
+  - name: Security policy
+    url: https://github.com/mcp-safeguard/mcp-safeguard/blob/main/SECURITY.md
+    about: Please report security vulnerabilities privately. Do not open a public issue.

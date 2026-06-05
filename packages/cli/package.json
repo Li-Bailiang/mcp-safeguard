@@ -1,0 +1,46 @@
+{
+  "name": "@mcp-safeguard/cli",
+  "version": "0.1.0",
+  "description": "CLI for MCP-Safeguard security scanner",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "mcp-safeguard": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@mcp-safeguard/core": "workspace:*",
+    "@mcp-safeguard/semgrep-installer": "workspace:*",
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "cli-progress": "^3.12.0",
+    "cli-table3": "^0.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/cli-progress": "^3.11.0",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": ["mcp", "security", "scanner", "semgrep", "cli"],
+  "license": "MIT",
+  "author": "MCP-Safeguard contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Li-Bailiang/mcp-safeguard.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/Li-Bailiang/mcp-safeguard#readme",
+  "bugs": {
+    "url": "https://github.com/Li-Bailiang/mcp-safeguard/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

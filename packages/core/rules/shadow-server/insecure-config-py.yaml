@@ -1,0 +1,80 @@
+rules:
+  - id: mcp-python-server-no-auth
+    languages: [python]
+    message: MCP server running without authentication
+    severity: ERROR
+    patterns:
+      - pattern: |
+          server = Server(...)
+          ...
+          server.run()
+    metadata:
+      category: shadow-server
+      subcategory:
+        - missing-authentication
+      confidence: medium
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-306"
+
+  - id: mcp-python-hardcoded-secrets
+    languages: [python]
+    message: Hardcoded credentials in configuration
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              API_KEY = "..."
+          - pattern: |
+              PASSWORD = "..."
+          - pattern: |
+              SECRET = "..."
+    metadata:
+      category: shadow-server
+      subcategory:
+        - hardcoded-secrets
+      confidence: high
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-798"
+
+  - id: mcp-python-ssl-disabled
+    languages: [python]
+    message: SSL verification disabled
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: requests.get(..., verify=False, ...)
+          - pattern: requests.post(..., verify=False, ...)
+          - pattern: urllib.request.urlopen(..., context=ssl._create_unverified_context(), ...)
+    metadata:
+      category: shadow-server
+      subcategory:
+        - tls-verification
+      confidence: high
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-295"
+
+  - id: mcp-python-debug-enabled
+    languages: [python]
+    message: Debug mode enabled
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              app.debug = True
+          - pattern: |
+              app.run(debug=True)
+    metadata:
+      category: shadow-server
+      subcategory:
+        - debug-enabled
+      confidence: high
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-489"

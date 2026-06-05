@@ -1,0 +1,55 @@
+rules:
+  - id: go-insecure-random
+    languages: [go]
+    message: Using math/rand for security-sensitive operations is cryptographically insecure
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: rand.Int()
+          - pattern: rand.Intn(...)
+          - pattern: rand.Int63()
+          - pattern: rand.Int63n(...)
+          - pattern: rand.Float32()
+          - pattern: rand.Float64()
+          - pattern: rand.Read(...)
+      - pattern-not-inside: |
+          import cryptorand "crypto/rand"
+          ...
+    metadata:
+      category: go-security
+      subcategory:
+        - weak-crypto
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-338"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - "https://pkg.go.dev/crypto/rand"
+      description: "Use crypto/rand instead of math/rand for security-sensitive random number generation (tokens, keys, nonces)"
+
+  - id: go-math-rand-seed
+    languages: [go]
+    message: math/rand.Seed() with predictable seed weakens randomness
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: rand.Seed($X)
+      - metavariable-pattern:
+          metavariable: $X
+          patterns:
+            - pattern-either:
+                - pattern: "1"
+                - pattern: "0"
+                - pattern: time.Now().Unix()
+    metadata:
+      category: go-security
+      subcategory:
+        - weak-crypto
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-338"

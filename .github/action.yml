@@ -1,0 +1,225 @@
+name: 'MCP Security Scanner'
+description: 'Scan MCP servers for security vulnerabilities'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  fail-on-severity:
+    description: 'Fail on severity level (high, medium, low)'
+    required: false
+    default: 'high'
+  upload-sarif:
+    description: 'Upload SARIF to GitHub Security'
+    required: false
+    default: 'true'
+  config-path:
+    description: 'Path to config file'
+    required: false
+    default: '.mcp-safeguardrc.js'
+  working-directory:
+    description: 'Directory to scan (relative to the repository root)'
+    required: false
+    default: '.'
+  github-token:
+    description: 'GitHub token for API access (required for PR comments)'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  risk-score:
+    description: 'Overall risk score (0-100)'
+    value: ${{ steps.scan.outputs.risk-score }}
+  total-findings:
+    description: 'Total number of findings'
+    value: ${{ steps.scan.outputs.total-findings }}
+  error-count:
+    description: 'Number of error-level findings'
+    value: ${{ steps.scan.outputs.error-count }}
+  sarif-path:
+    description: 'Path to generated SARIF file'
+    value: ${{ steps.scan.outputs.sarif-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    # NOTE: pnpm must be installed BEFORE actions/setup-node runs, otherwise
+    # `cache: 'pnpm'` fails because setup-node cannot find the pnpm binary.
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 9
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        cache-dependency-path: ${{ github.action_path }}/pnpm-lock.yaml
+
+    # The action bundles the full monorepo source. Because @mcp-safeguard/cli is
+    # not published to npm, we build the CLI from the action's own checkout
+    # (github.action_path) rather than installing it from the registry.
+    - name: Build MCP-Safeguard CLI
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        pnpm install --frozen-lockfile
+        pnpm build
+
+    - name: Run security scan
+      id: scan
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        CLI: ${{ github.action_path }}/packages/cli/dist/index.js
+      run: |
+        # Run scan and generate reports in the user's working directory.
+        # The CLI exits non-zero when findings are present, so guard with `|| true`
+        # and enforce thresholds explicitly in the "Check severity threshold" step.
+        node "$CLI" scan . --format json --output mcp-safeguard-results.json || true
+        node "$CLI" scan . --format sarif --output mcp-safeguard-results.sarif || true
+
+        # Parse results
+        if [ -f "mcp-safeguard-results.json" ]; then
+          RISK_SCORE=$(jq -r '.summary.riskScore // 0' mcp-safeguard-results.json)
+          TOTAL=$(jq -r '.summary.total // 0' mcp-safeguard-results.json)
+          ERRORS=$(jq -r '.summary.bySeverity.ERROR // 0' mcp-safeguard-results.json)
+
+          echo "risk-score=$RISK_SCORE" >> $GITHUB_OUTPUT
+          echo "total-findings=$TOTAL" >> $GITHUB_OUTPUT
+          echo "error-count=$ERRORS" >> $GITHUB_OUTPUT
+          echo "sarif-path=mcp-safeguard-results.sarif" >> $GITHUB_OUTPUT
+
+          echo "Risk Score: $RISK_SCORE"
+          echo "Total Findings: $TOTAL"
+          echo "Errors: $ERRORS"
+        fi
+
+    - name: Upload SARIF to GitHub Security
+      if: inputs.upload-sarif == 'true' && always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.working-directory }}/mcp-safeguard-results.sarif
+        category: mcp-safeguard
+
+    - name: Comment on PR
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+
+          const resultsPath = path.join('${{ inputs.working-directory }}', 'mcp-safeguard-results.json');
+          if (!fs.existsSync(resultsPath)) {
+            console.log('No results file found, skipping PR comment');
+            return;
+          }
+
+          const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+          const { summary, findings } = results;
+
+          // Determine risk level
+          const getRiskLevel = (score) => {
+            if (score >= 70) return '🔴 Critical';
+            if (score >= 50) return '🟠 High';
+            if (score >= 30) return '🟡 Medium';
+            return '🟢 Low';
+          };
+
+          // Build comment body
+          let body = '## MCP Security Scan Results\n\n';
+          body += `**Risk Score:** ${summary.riskScore}/100 (${getRiskLevel(summary.riskScore)})\n\n`;
+          body += '### Summary\n\n';
+          body += `- **Total Findings:** ${summary.total}\n`;
+          body += `- **Errors:** ${summary.bySeverity.ERROR || 0}\n`;
+          body += `- **Warnings:** ${summary.bySeverity.WARNING || 0}\n`;
+          body += `- **Info:** ${summary.bySeverity.INFO || 0}\n\n`;
+
+          if (Object.keys(summary.byCategory).length > 0) {
+            body += '### By Category\n\n';
+            body += '| Category | Count |\n';
+            body += '|----------|-------|\n';
+            for (const [category, count] of Object.entries(summary.byCategory)) {
+              body += `| ${category} | ${count} |\n`;
+            }
+            body += '\n';
+          }
+
+          if (findings.length > 0) {
+            // Show top 10 findings
+            const topFindings = findings.slice(0, 10);
+            body += '### Top Findings\n\n';
+            body += '| Severity | Check ID | File | Message |\n';
+            body += '|----------|----------|------|----------|\n';
+
+            for (const finding of topFindings) {
+              const severity = finding.severity === 'ERROR' ? '🔴' : finding.severity === 'WARNING' ? '🟡' : 'ℹ️';
+              const file = `${finding.path}:${finding.start.line}`;
+              const message = finding.message.substring(0, 50) + (finding.message.length > 50 ? '...' : '');
+              body += `| ${severity} | \`${finding.check_id}\` | ${file} | ${message} |\n`;
+            }
+
+            if (findings.length > 10) {
+              body += `\n_Showing 10 of ${findings.length} findings. See full report for details._\n`;
+            }
+          } else {
+            body += '✅ No security findings detected!\n';
+          }
+
+          body += '\n---\n';
+          body += '_Scanned with [MCP-Safeguard](https://github.com/mcp-safeguard/mcp-safeguard)_';
+
+          // Post or update comment
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const botComment = comments.find(comment =>
+            comment.user.type === 'Bot' && comment.body.includes('MCP Security Scan Results')
+          );
+
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: body
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+          }
+
+    - name: Check severity threshold
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        if [ -f "mcp-safeguard-results.json" ]; then
+          ERRORS=$(jq -r '.summary.bySeverity.ERROR // 0' mcp-safeguard-results.json)
+          WARNINGS=$(jq -r '.summary.bySeverity.WARNING // 0' mcp-safeguard-results.json)
+          RISK_SCORE=$(jq -r '.summary.riskScore // 0' mcp-safeguard-results.json)
+
+          FAIL_ON="${{ inputs.fail-on-severity }}"
+
+          if [ "$FAIL_ON" = "high" ] && [ "$RISK_SCORE" -ge 70 ]; then
+            echo "❌ Build failed: Risk score ($RISK_SCORE) exceeds high threshold (70)"
+            exit 1
+          elif [ "$FAIL_ON" = "medium" ] && [ "$RISK_SCORE" -ge 50 ]; then
+            echo "❌ Build failed: Risk score ($RISK_SCORE) exceeds medium threshold (50)"
+            exit 1
+          elif [ "$FAIL_ON" = "low" ] && [ "$RISK_SCORE" -ge 30 ]; then
+            echo "❌ Build failed: Risk score ($RISK_SCORE) exceeds low threshold (30)"
+            exit 1
+          fi
+
+          echo "✅ Security check passed"
+        fi

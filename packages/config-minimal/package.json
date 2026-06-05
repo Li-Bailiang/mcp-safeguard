@@ -1,0 +1,24 @@
+{
+  "name": "@mcp-safeguard/config-minimal",
+  "version": "0.1.0",
+  "description": "Minimal configuration preset for MCP-Safeguard with only critical security checks",
+  "main": "index.js",
+  "keywords": ["mcp", "security", "config", "minimal"],
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "author": "MCP-Safeguard contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Li-Bailiang/mcp-safeguard.git",
+    "directory": "packages/config-minimal"
+  },
+  "homepage": "https://github.com/Li-Bailiang/mcp-safeguard#readme",
+  "bugs": {
+    "url": "https://github.com/Li-Bailiang/mcp-safeguard/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

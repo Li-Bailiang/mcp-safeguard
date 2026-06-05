@@ -1,0 +1,36 @@
+rules:
+  - id: go-path-traversal
+    languages: [go]
+    message: Path constructed with user input without sanitization, vulnerable to path traversal
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: filepath.Join($BASE, $INPUT)
+          - pattern: path.Join($BASE, $INPUT)
+          - pattern: $BASE + "/" + $INPUT
+          - pattern: $BASE + string(os.PathSeparator) + $INPUT
+      - metavariable-pattern:
+          metavariable: $INPUT
+          patterns:
+            - pattern-either:
+                - pattern: $REQ.$METHOD(...)
+                - pattern: $REQ.FormValue(...)
+                - pattern: $REQ.PostFormValue(...)
+                - pattern: $REQ.URL.Query().Get(...)
+                - pattern: $PARAMS.ByName(...)
+                - pattern: $CTX.Param(...)
+                - pattern: $CTX.Query(...)
+    metadata:
+      category: go-security
+      subcategory:
+        - path-traversal
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-22"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      references:
+        - "https://owasp.org/www-community/attacks/Path_Traversal"
+      description: "Sanitize and validate user input before using in file paths. Use filepath.Clean() and verify the result is within allowed directories"

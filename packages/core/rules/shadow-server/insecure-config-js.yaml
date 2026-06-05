@@ -1,0 +1,152 @@
+rules:
+  - id: mcp-server-no-auth
+    languages: [javascript, typescript]
+    message: MCP server running without authentication
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const server = new Server(...);
+              ...
+              server.connect(...)
+          - pattern: |
+              createServer({ ..., auth: false, ... })
+    metadata:
+      category: shadow-server
+      subcategory:
+        - missing-authentication
+      confidence: high
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-306"
+      owasp:
+        - "A07:2021"
+
+  - id: mcp-server-insecure-transport
+    languages: [javascript, typescript]
+    message: MCP server using insecure transport (stdio without validation)
+    severity: WARNING
+    patterns:
+      - pattern: |
+          new StdioServerTransport()
+    metadata:
+      category: shadow-server
+      subcategory:
+        - insecure-transport
+      confidence: medium
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-319"
+
+  - id: mcp-hardcoded-credentials
+    languages: [javascript, typescript]
+    message: Hardcoded credentials in MCP configuration
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              { ..., apiKey: "...", ... }
+          - pattern: |
+              { ..., password: "...", ... }
+          - pattern: |
+              { ..., secret: "...", ... }
+          - pattern: |
+              const API_KEY = "..."
+          - pattern: |
+              const PASSWORD = "..."
+    metadata:
+      category: shadow-server
+      subcategory:
+        - hardcoded-secrets
+      confidence: high
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-798"
+      owasp:
+        - "A07:2021"
+
+  - id: mcp-unrestricted-cors
+    languages: [javascript, typescript]
+    message: CORS configured with wildcard origin
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              { ..., cors: { origin: "*" }, ... }
+          - pattern: |
+              res.setHeader("Access-Control-Allow-Origin", "*")
+    metadata:
+      category: shadow-server
+      subcategory:
+        - cors-misconfiguration
+      confidence: high
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-942"
+
+  - id: mcp-disabled-tls-verification
+    languages: [javascript, typescript]
+    message: TLS certificate verification disabled
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              { ..., rejectUnauthorized: false, ... }
+          - pattern: |
+              process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+    metadata:
+      category: shadow-server
+      subcategory:
+        - tls-verification
+      confidence: high
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-295"
+
+  - id: mcp-excessive-permissions
+    languages: [javascript, typescript]
+    message: MCP tool registered with excessive permissions
+    severity: WARNING
+    patterns:
+      - pattern: |
+          server.setRequestHandler(ListToolsRequestSchema, async () => ({
+            tools: [{
+              ...,
+              permissions: { admin: true, ... },
+              ...
+            }]
+          }))
+    metadata:
+      category: shadow-server
+      subcategory:
+        - excessive-permissions
+      confidence: medium
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-269"
+
+  - id: mcp-debug-mode-production
+    languages: [javascript, typescript]
+    message: Debug mode enabled in production configuration
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              { ..., debug: true, ... }
+          - pattern: |
+              process.env.DEBUG = "*"
+    metadata:
+      category: shadow-server
+      subcategory:
+        - debug-enabled
+      confidence: medium
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-489"

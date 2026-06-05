@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+packages/*/dist/
+*.tsbuildinfo
+
+# Test and coverage output
+coverage/
+*.log
+
+# Environment and local config
+.env
+.env.local
+.env.*.local
+.claude/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+_check.js
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

@@ -1,0 +1,143 @@
+rules:
+  - id: mcp-unbounded-loop
+    languages: [javascript, typescript]
+    message: Unbounded loop without resource limits
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              while (true) {
+                ...
+              }
+          - pattern: |
+              for (;;) {
+                ...
+              }
+    metadata:
+      category: dos
+      subcategory:
+        - infinite-loop
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-835"
+      owasp:
+        - "A04:2021"
+
+  - id: mcp-python-unbounded-loop
+    languages: [python]
+    message: Unbounded loop without resource limits
+    severity: WARNING
+    patterns:
+      - pattern: |
+          while True:
+            ...
+    metadata:
+      category: dos
+      subcategory:
+        - infinite-loop
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-835"
+
+  - id: mcp-uncontrolled-recursion
+    languages: [javascript, typescript]
+    message: Recursive function without depth limit
+    severity: WARNING
+    patterns:
+      - pattern: |
+          function $FUNC(...) {
+            ...
+            $FUNC(...);
+            ...
+          }
+    metadata:
+      category: dos
+      subcategory:
+        - uncontrolled-recursion
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-674"
+
+  - id: mcp-large-file-processing
+    languages: [javascript, typescript]
+    message: Processing large files without size limits
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              readFile($PATH, ...)
+          - pattern: |
+              readFileSync($PATH)
+    metadata:
+      category: dos
+      subcategory:
+        - resource-exhaustion
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-400"
+
+  - id: mcp-python-large-file
+    languages: [python]
+    message: Reading entire file into memory without size check
+    severity: WARNING
+    patterns:
+      - pattern: |
+          with open($PATH) as f:
+            content = f.read()
+    metadata:
+      category: dos
+      subcategory:
+        - resource-exhaustion
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-400"
+
+  - id: mcp-regex-dos
+    languages: [javascript, typescript]
+    message: Regular expression vulnerable to ReDoS
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              /(.+)+/.test($INPUT)
+          - pattern: |
+              /(.*)+ /.test($INPUT)
+    metadata:
+      category: dos
+      subcategory:
+        - redos
+      confidence: medium
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-1333"
+
+  - id: mcp-uncontrolled-memory-allocation
+    languages: [javascript, typescript]
+    message: Memory allocation without size limit
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              new Array($SIZE)
+          - pattern: |
+              Buffer.alloc($SIZE)
+    metadata:
+      category: dos
+      subcategory:
+        - memory-exhaustion
+      confidence: low
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-789"

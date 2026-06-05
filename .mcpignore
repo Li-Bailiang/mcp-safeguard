@@ -1,0 +1,11 @@
+# MCP-Safeguard self-scan ignore list (used when MCP-Safeguard scans its own repo).
+# The paths below are either intentionally-vulnerable fixtures or rule/data
+# files that must not be flagged when scanning this project's own source.
+tests/
+test-fixtures/
+**/rules/
+**/examples/
+**/*.test.ts
+**/*.test.js
+**/dist/
+node_modules/

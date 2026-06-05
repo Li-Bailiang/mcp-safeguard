@@ -1,0 +1,31 @@
+extends:
+  - '@mcp-safeguard/config-recommended'
+
+rules:
+  indirect-prompt-injection: error
+  excessive-agency: warn
+  typosquatting: off
+  missing-input-validation:
+    severity: warn
+    options:
+      allowedPatterns:
+        - email
+        - url
+
+ignore:
+  - '**/test/**'
+  - '**/fixtures/**'
+  - 'node_modules/**'
+
+severity:
+  failOn: high
+
+languages:
+  - javascript
+  - typescript
+  - python
+  - go
+
+output:
+  format: text
+  path: ./reports/

@@ -1,0 +1,71 @@
+rules:
+  - id: java-ldap-injection-concat
+    languages: [java]
+    message: LDAP query built with string concatenation is vulnerable to LDAP injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $CTX.search(..., $FILTER + ..., ...)
+          - pattern: $CTX.search(..., String.format(...), ...)
+    metadata:
+      category: java-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-90"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html"
+      description: "Use parameterized LDAP queries and escape special characters in user input"
+
+  - id: java-ldap-injection-dn
+    languages: [java]
+    message: LDAP DN constructed with user input may allow LDAP injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: new InitialDirContext(...).lookup($DN + ...)
+          - pattern: $CTX.lookup($DN + ...)
+          - pattern: new LdapName($NAME + ...)
+    metadata:
+      category: java-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-90"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html"
+      description: "Escape LDAP special characters in Distinguished Names to prevent injection"
+
+  - id: java-ldap-injection-search-filter
+    languages: [java]
+    message: Unvalidated LDAP search filter allows injection attacks
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: new SearchControls(...).setFilter($FILTER + ...)
+          - pattern: $SC.setFilter($FILTER + ...)
+          - pattern: $CTX.search($BASE, $FILTER + ..., $CONTROLS)
+    metadata:
+      category: java-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-90"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html"
+      description: "Validate and escape LDAP filter input. Use whitelisting for allowed characters"

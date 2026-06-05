@@ -1,0 +1,45 @@
+{
+  "name": "@mcp-safeguard/runtime",
+  "version": "0.1.0",
+  "description": "Runtime protection SDK for MCP servers with tool call interception, rate limiting, and prompt injection detection",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "mcp",
+    "security",
+    "runtime",
+    "protection",
+    "rate-limiting",
+    "audit"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "author": "MCP-Safeguard contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Li-Bailiang/mcp-safeguard.git",
+    "directory": "packages/runtime"
+  },
+  "homepage": "https://github.com/Li-Bailiang/mcp-safeguard#readme",
+  "bugs": {
+    "url": "https://github.com/Li-Bailiang/mcp-safeguard/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

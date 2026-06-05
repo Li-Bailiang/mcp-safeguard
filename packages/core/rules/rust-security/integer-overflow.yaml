@@ -1,0 +1,77 @@
+rules:
+  - id: rust-unchecked-arithmetic
+    languages: [rust]
+    message: Unchecked arithmetic operation can cause integer overflow or underflow
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: $X + $Y
+          - pattern: $X - $Y
+          - pattern: $X * $Y
+          - pattern: $X / $Y
+      - pattern-not-inside: |
+          $X.checked_add(...)
+      - pattern-not-inside: |
+          $X.checked_sub(...)
+      - pattern-not-inside: |
+          $X.checked_mul(...)
+      - pattern-not-inside: |
+          $X.checked_div(...)
+      - pattern-not-inside: |
+          $X.saturating_add(...)
+      - pattern-not-inside: |
+          $X.saturating_sub(...)
+      - pattern-not-inside: |
+          $X.saturating_mul(...)
+      - metavariable-pattern:
+          metavariable: $X
+          patterns:
+            - pattern-not: |
+                ...
+                let $X: usize = ...;
+                ...
+    metadata:
+      category: rust-security
+      subcategory:
+        - integer-overflow
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-190"
+        - "CWE-191"
+      owasp:
+        - "A04:2021 - Insecure Design"
+      references:
+        - "https://doc.rust-lang.org/book/ch03-02-data-types.html#integer-overflow"
+      description: "Use checked_*, saturating_*, or wrapping_* methods for arithmetic operations on untrusted input"
+
+  - id: rust-as-integer-cast
+    languages: [rust]
+    message: Integer cast with 'as' can silently truncate or overflow
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: $X as i8
+          - pattern: $X as i16
+          - pattern: $X as i32
+          - pattern: $X as i64
+          - pattern: $X as u8
+          - pattern: $X as u16
+          - pattern: $X as u32
+          - pattern: $X as u64
+          - pattern: $X as isize
+          - pattern: $X as usize
+    metadata:
+      category: rust-security
+      subcategory:
+        - integer-overflow
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-190"
+        - "CWE-681"
+      references:
+        - "https://doc.rust-lang.org/reference/expressions/operator-expr.html#type-cast-expressions"
+      description: "Use TryFrom/TryInto traits for safe integer conversions instead of 'as' casts"

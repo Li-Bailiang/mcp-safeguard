@@ -1,0 +1,134 @@
+rules:
+  - id: mcp-suspicious-exec-package
+    languages: [javascript, typescript]
+    message: Suspicious use of child_process exec functions without proper sanitization
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const { exec } = require('child_process');
+              ...
+              exec($ARG, ...)
+          - pattern: |
+              const { execSync } = require('child_process');
+              ...
+              execSync($ARG, ...)
+          - pattern: |
+              import { exec } from 'child_process';
+              ...
+              exec($ARG, ...)
+    metadata:
+      category: supply-chain
+      subcategory:
+        - command-injection
+      confidence: high
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-78"
+      owasp:
+        - "A03:2021"
+      references:
+        - https://owasp.org/www-community/attacks/Command_Injection
+
+  - id: mcp-suspicious-eval
+    languages: [javascript, typescript]
+    message: Dangerous use of eval() function
+    severity: ERROR
+    pattern: eval($ARG)
+    metadata:
+      category: supply-chain
+      subcategory:
+        - code-injection
+      confidence: high
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-95"
+      owasp:
+        - "A03:2021"
+
+  - id: mcp-suspicious-vm-runInNewContext
+    languages: [javascript, typescript]
+    message: Use of vm.runInNewContext with untrusted code
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              const vm = require('vm');
+              ...
+              vm.runInNewContext($CODE, ...)
+          - pattern: |
+              import * as vm from 'vm';
+              ...
+              vm.runInNewContext($CODE, ...)
+    metadata:
+      category: supply-chain
+      subcategory:
+        - code-injection
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-94"
+
+  - id: mcp-python-subprocess-shell
+    languages: [python]
+    message: Subprocess call with shell=True is dangerous
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: subprocess.call(..., shell=True, ...)
+          - pattern: subprocess.run(..., shell=True, ...)
+          - pattern: subprocess.Popen(..., shell=True, ...)
+    metadata:
+      category: supply-chain
+      subcategory:
+        - command-injection
+      confidence: high
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-78"
+      owasp:
+        - "A03:2021"
+
+  - id: mcp-python-exec-eval
+    languages: [python]
+    message: Use of exec() or eval() with dynamic input
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: exec($ARG)
+          - pattern: eval($ARG)
+    metadata:
+      category: supply-chain
+      subcategory:
+        - code-injection
+      confidence: high
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-95"
+
+  - id: mcp-dynamic-import
+    languages: [javascript, typescript]
+    message: Dynamic import/require with a non-literal (possibly user-controlled) specifier
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: require($VAR)
+          - pattern: import($VAR)
+      # Static string specifiers (require("fs"), import("./x")) are safe — only a
+      # computed/variable specifier is an arbitrary-module-load risk.
+      - pattern-not: require("...")
+      - pattern-not: import("...")
+    metadata:
+      category: supply-chain
+      subcategory:
+        - arbitrary-module-load
+      confidence: medium
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-829"

@@ -1,0 +1,36 @@
+rules:
+  # Rug-pull: a tool is registered with a description that is computed at runtime
+  # (a function call, awaited value, or remote/property lookup) rather than a static
+  # literal. The server can show a benign description at approval time and silently
+  # change it later. Descriptions should be static and reviewable.
+  - id: mcp-tool-description-dynamic
+    languages: [javascript, typescript]
+    message: >-
+      MCP tool description is computed at runtime instead of a static string. A server
+      can present a benign description for approval and later change it ("rug pull").
+      Use a static, reviewable description.
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: '$S.registerTool($NAME, {..., description: $DESC, ...}, ...)'
+          - pattern: '$S.tool($NAME, {..., description: $DESC, ...}, ...)'
+          - pattern: $S.tool($NAME, $DESC, $SCHEMA, $CB)
+      - metavariable-pattern:
+          metavariable: $DESC
+          patterns:
+            - pattern-either:
+                - pattern: $FN(...)
+                - pattern: await $FN(...)
+                - pattern: $OBJ.$PROP
+    metadata:
+      category: mcp-threats
+      subcategory:
+        - rug-pull
+        - tool-mutation
+      confidence: medium
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-494"
+      references:
+        - https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks

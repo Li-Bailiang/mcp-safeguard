@@ -1,0 +1,79 @@
+rules:
+  - id: rust-insecure-random-crypto
+    languages: [rust]
+    message: Using rand::thread_rng() or rand::random() for cryptographic purposes is insecure
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              rand::thread_rng()
+          - pattern: |
+              rand::random()
+          - pattern: |
+              thread_rng()
+      - pattern-not-inside: |
+          use rand::rngs::OsRng;
+          ...
+    metadata:
+      category: rust-security
+      subcategory:
+        - weak-crypto
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-338"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - "https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html"
+      description: "Use rand::rngs::OsRng or getrandom crate for cryptographically secure random number generation (tokens, keys, nonces, salts)"
+
+  - id: rust-weak-rng-seed
+    languages: [rust]
+    message: StdRng or SmallRng with predictable seed weakens randomness
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              StdRng::seed_from_u64($SEED)
+          - pattern: |
+              SmallRng::seed_from_u64($SEED)
+      - metavariable-pattern:
+          metavariable: $SEED
+          patterns:
+            - pattern-either:
+                - pattern: "0"
+                - pattern: "1"
+    metadata:
+      category: rust-security
+      subcategory:
+        - weak-crypto
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-338"
+      description: "Use from_entropy() or seed from OsRng for unpredictable random number generation"
+
+  - id: rust-fastrand-crypto
+    languages: [rust]
+    message: fastrand is not cryptographically secure and should not be used for security purposes
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              fastrand::$FUNC(...)
+          - pattern: |
+              use fastrand;
+              ...
+    metadata:
+      category: rust-security
+      subcategory:
+        - weak-crypto
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-338"
+      description: "fastrand is designed for speed, not security. Use rand::rngs::OsRng for cryptographic operations"

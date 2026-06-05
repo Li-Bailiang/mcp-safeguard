@@ -1,0 +1,59 @@
+rules:
+  # Tool poisoning: an MCP tool's *description* (which the model reads and trusts)
+  # carries hidden instructions — read a secret file, exfiltrate data, ignore prior
+  # instructions, etc. Covers the modern high-level API: server.tool(name, desc, ...)
+  # and server.registerTool(name, { description }, ...).
+  - id: mcp-tool-poisoning
+    languages: [javascript, typescript]
+    message: >-
+      MCP tool description contains hidden instruction-like text. A malicious or
+      compromised server can use this to inject instructions the model will follow
+      (tool poisoning). Treat tool descriptions as untrusted and review them.
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $S.tool($NAME, $DESC, ...)
+          - pattern: '$S.registerTool($NAME, {..., description: $DESC, ...}, ...)'
+          - pattern: '$S.tool($NAME, {..., description: $DESC, ...}, ...)'
+      - metavariable-regex:
+          metavariable: $DESC
+          regex: '(?i).*(ignore\s+(the\s+|all\s+)?(previous|prior|above)|disregard\s+(the\s+|all\s+)?(previous|prior|above)|do\s+not\s+(tell|mention|inform|reveal|disclose)|<important>|before\s+(using|calling|invoking)\s+this\s+tool|system\s*prompt|\.ssh|id_rsa|exfiltrat|reveal\s+(the\s+)?(api[\s_-]?key|token|secret|password)|pass\s+(its|the)\s+contents).*'
+    metadata:
+      category: mcp-threats
+      subcategory:
+        - tool-poisoning
+        - prompt-injection
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-77"
+      references:
+        - https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks
+
+  - id: mcp-python-tool-poisoning
+    languages: [python]
+    message: >-
+      MCP tool description contains hidden instruction-like text (tool poisoning).
+      The model reads tool descriptions as trusted context; review them as untrusted.
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: $S.tool(..., description=$DESC, ...)
+          - pattern: Tool(..., description=$DESC, ...)
+          - pattern: types.Tool(..., description=$DESC, ...)
+      - metavariable-regex:
+          metavariable: $DESC
+          regex: '(?i).*(ignore\s+(the\s+|all\s+)?(previous|prior|above)|disregard\s+(the\s+|all\s+)?(previous|prior|above)|do\s+not\s+(tell|mention|inform|reveal|disclose)|<important>|before\s+(using|calling|invoking)\s+this\s+tool|system\s*prompt|\.ssh|id_rsa|exfiltrat|reveal\s+(the\s+)?(api[\s_-]?key|token|secret|password)|pass\s+(its|the)\s+contents).*'
+    metadata:
+      category: mcp-threats
+      subcategory:
+        - tool-poisoning
+        - prompt-injection
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-77"
+      references:
+        - https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks

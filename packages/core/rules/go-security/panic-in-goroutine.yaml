@@ -1,0 +1,33 @@
+rules:
+  - id: go-panic-in-goroutine
+    languages: [go]
+    message: panic() in goroutine without recover() will crash entire program
+    severity: ERROR
+    patterns:
+      - pattern: |
+          go func(...) {
+            ...
+            panic(...)
+            ...
+          }(...)
+      - pattern-not: |
+          go func(...) {
+            defer func() {
+              if $R := recover(); $R != nil {
+                ...
+              }
+            }()
+            ...
+          }(...)
+    metadata:
+      category: go-security
+      subcategory:
+        - error-handling
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-248"
+      references:
+        - "https://go.dev/blog/defer-panic-and-recover"
+      description: "Panics in goroutines should be recovered to prevent crashing the entire application"

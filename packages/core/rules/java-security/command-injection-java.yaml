@@ -1,0 +1,76 @@
+rules:
+  - id: java-command-injection-runtime
+    languages: [java]
+    message: Command execution with user input is vulnerable to command injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: Runtime.getRuntime().exec($CMD + ...)
+          - pattern: Runtime.getRuntime().exec(String.format(...))
+          - pattern: $RT.exec($CMD + ...)
+          - pattern: $RT.exec(String.format(...))
+    metadata:
+      category: java-security
+      subcategory:
+        - command-injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-78"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://owasp.org/www-community/attacks/Command_Injection"
+      description: "Avoid using Runtime.exec() with string concatenation. Use ProcessBuilder with array arguments instead"
+
+  - id: java-command-injection-processbuilder
+    languages: [java]
+    message: ProcessBuilder command with concatenated input may allow command injection
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: new ProcessBuilder($CMD + ..., ...)
+          - pattern: new ProcessBuilder(...).command($CMD + ..., ...)
+          - pattern: $PB.command($CMD + ..., ...)
+    metadata:
+      category: java-security
+      subcategory:
+        - command-injection
+      confidence: MEDIUM
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-78"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://owasp.org/www-community/attacks/Command_Injection"
+      description: "Ensure command arguments are properly validated and not concatenated with user input"
+
+  - id: java-command-injection-shell
+    languages: [java]
+    message: Executing commands through shell is dangerous and allows command injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: Runtime.getRuntime().exec(new String[]{"sh", "-c", ...})
+          - pattern: Runtime.getRuntime().exec(new String[]{"bash", "-c", ...})
+          - pattern: Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", ...})
+          - pattern: Runtime.getRuntime().exec(new String[]{"/bin/bash", "-c", ...})
+          - pattern: Runtime.getRuntime().exec(new String[]{"cmd", "/c", ...})
+          - pattern: Runtime.getRuntime().exec(new String[]{"cmd.exe", "/c", ...})
+    metadata:
+      category: java-security
+      subcategory:
+        - command-injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-78"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://owasp.org/www-community/attacks/Command_Injection"
+      description: "Avoid using shell interpreters. Execute commands directly with ProcessBuilder"

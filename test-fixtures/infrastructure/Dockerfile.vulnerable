@@ -1,0 +1,27 @@
+# Test Dockerfile with multiple security issues
+
+# Unpinned base image
+FROM node:latest
+
+# Missing maintainer label
+
+# Hardcoded secrets in ENV
+ENV API_KEY=EXAMPLE_API_KEY_DO_NOT_USE
+ENV DATABASE_PASSWORD=mySecretPass123
+
+# Overly broad COPY
+COPY . .
+
+# apt-get without cleanup
+RUN apt-get update && apt-get install -y curl wget
+
+# Dangerous curl pipe sh
+RUN curl https://get.docker.com | sh
+
+# Exposed port range
+EXPOSE 8000-9000
+
+# Running as root user
+USER root
+
+# No HEALTHCHECK instruction

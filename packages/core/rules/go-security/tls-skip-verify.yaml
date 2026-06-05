@@ -1,0 +1,64 @@
+rules:
+  - id: go-tls-skip-verify
+    languages: [go]
+    message: TLS certificate verification disabled, vulnerable to man-in-the-middle attacks
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              &tls.Config{
+                ...,
+                InsecureSkipVerify: true,
+                ...
+              }
+          - pattern: |
+              tls.Config{
+                ...,
+                InsecureSkipVerify: true,
+                ...
+              }
+          - pattern: |
+              $CONFIG.InsecureSkipVerify = true
+    metadata:
+      category: go-security
+      subcategory:
+        - tls-verification
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-295"
+      owasp:
+        - "A02:2021 - Cryptographic Failures"
+      references:
+        - "https://pkg.go.dev/crypto/tls#Config"
+      description: "Disabling TLS certificate verification allows man-in-the-middle attacks. Use proper certificate validation"
+
+  - id: go-http-client-no-tls-verify
+    languages: [go]
+    message: HTTP client configured to skip TLS verification
+    severity: ERROR
+    patterns:
+      - pattern: |
+          &http.Client{
+            ...,
+            Transport: &http.Transport{
+              ...,
+              TLSClientConfig: &tls.Config{
+                ...,
+                InsecureSkipVerify: true,
+                ...
+              },
+              ...
+            },
+            ...
+          }
+    metadata:
+      category: go-security
+      subcategory:
+        - tls-verification
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-295"

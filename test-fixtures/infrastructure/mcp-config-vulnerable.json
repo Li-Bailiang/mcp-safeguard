@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "vulnerable-server": {
+      "command": "node",
+      "args": ["server.js"],
+      "allowUnauthenticated": true,
+      "transport": "http",
+      "cors": {
+        "origin": "*"
+      },
+      "logging": false
+    },
+    "another-server": {
+      "command": "python",
+      "args": ["server.py"],
+      "transport": {
+        "type": "http",
+        "host": "0.0.0.0",
+        "port": 3000
+      },
+      "allowedOrigins": ["*"]
+    }
+  }
+}

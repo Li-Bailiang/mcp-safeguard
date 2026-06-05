@@ -1,0 +1,63 @@
+name: MCP Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run MCP Security Scanner
+        uses: ./
+        with:
+          fail-on-severity: 'high'
+          upload-sarif: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-safeguard-results
+          path: |
+            mcp-safeguard-results.json
+            mcp-safeguard-results.sarif
+          retention-days: 30
+
+  multi-directory-scan:
+    name: Multi-Directory Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        directory: ['packages/cli', 'packages/core']
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Scan ${{ matrix.directory }}
+        uses: ./
+        with:
+          working-directory: ${{ matrix.directory }}
+          fail-on-severity: 'medium'
+          upload-sarif: 'false'
+          github-token: ${{ secrets.GITHUB_TOKEN }}

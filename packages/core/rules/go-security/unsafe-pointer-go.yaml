@@ -1,0 +1,64 @@
+rules:
+  - id: go-unsafe-pointer-conversion
+    languages: [go]
+    message: unsafe.Pointer conversion bypasses Go's type safety and memory safety
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: unsafe.Pointer(...)
+          - pattern: (*$TYPE)(unsafe.Pointer(...))
+          - pattern: uintptr(unsafe.Pointer(...))
+    metadata:
+      category: go-security
+      subcategory:
+        - memory-safety
+      confidence: HIGH
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-704"
+      references:
+        - "https://pkg.go.dev/unsafe"
+      description: "unsafe package bypasses Go's type and memory safety. Use only when absolutely necessary and document why"
+
+  - id: go-unsafe-string-bytes-conversion
+    languages: [go]
+    message: Unsafe string to bytes conversion without copying can lead to undefined behavior
+    severity: ERROR
+    patterns:
+      - pattern: |
+          *(*[]byte)(unsafe.Pointer(...))
+      - pattern-not-inside: |
+          // safe: ...
+          ...
+    metadata:
+      category: go-security
+      subcategory:
+        - memory-safety
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-119"
+      description: "Unsafe string-to-bytes conversions can lead to memory corruption if the string is modified"
+
+  - id: go-unsafe-reflect-header
+    languages: [go]
+    message: Using reflect.SliceHeader or StringHeader with unsafe is error-prone and deprecated
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: (*reflect.SliceHeader)(unsafe.Pointer(...))
+          - pattern: (*reflect.StringHeader)(unsafe.Pointer(...))
+    metadata:
+      category: go-security
+      subcategory:
+        - memory-safety
+      confidence: HIGH
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-704"
+      references:
+        - "https://pkg.go.dev/reflect#SliceHeader"
+      description: "SliceHeader and StringHeader are deprecated. Use unsafe.Slice, unsafe.SliceData, unsafe.String, or unsafe.StringData instead"

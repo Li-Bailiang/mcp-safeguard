@@ -1,0 +1,89 @@
+rules:
+  - id: rust-sql-injection-format
+    languages: [rust]
+    message: SQL query built with format!() macro is vulnerable to SQL injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $CONN.execute(format!(...), ...)
+          - pattern: |
+              $CONN.query(format!(...), ...)
+          - pattern: |
+              $CONN.query_one(format!(...), ...)
+          - pattern: |
+              $CONN.query_opt(format!(...), ...)
+          - pattern: |
+              $CONN.prepare(format!(...))
+          - pattern: |
+              $CLIENT.execute(format!(...), ...)
+          - pattern: |
+              $CLIENT.query(format!(...), ...)
+    metadata:
+      category: rust-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-89"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+      description: "Use parameterized queries with placeholders ($1, $2, etc.) instead of string formatting"
+
+  - id: rust-sql-injection-concat
+    languages: [rust]
+    message: SQL query built with string concatenation is vulnerable to SQL injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $CONN.execute($STR + ..., ...)
+          - pattern: |
+              $CONN.query($STR + ..., ...)
+          - pattern: |
+              $CONN.execute(&format!(...), ...)
+          - pattern: |
+              $CONN.query(&format!(...), ...)
+    metadata:
+      category: rust-security
+      subcategory:
+        - injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-89"
+      owasp:
+        - "A03:2021 - Injection"
+      description: "Use parameterized queries instead of string concatenation to prevent SQL injection"
+
+  - id: rust-sql-raw-query
+    languages: [rust]
+    message: Raw SQL query with user input may be vulnerable to SQL injection
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              sqlx::query($SQL)
+          - pattern: |
+              query!($SQL)
+      - metavariable-pattern:
+          metavariable: $SQL
+          patterns:
+            - pattern-either:
+                - pattern: format!(...)
+                - pattern: $VAR
+    metadata:
+      category: rust-security
+      subcategory:
+        - injection
+      confidence: MEDIUM
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-89"
+      description: "Ensure raw queries use parameterized placeholders for all user input"

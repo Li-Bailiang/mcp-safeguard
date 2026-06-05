@@ -1,0 +1,24 @@
+# MCP-Safeguard configuration for scanning MCP-Safeguard's OWN repository (dogfooding).
+#
+# These two rules target MCP *servers* that read/write paths derived from
+# untrusted tool input and surface them to the model. MCP-Safeguard is a CLI
+# scanner, not an MCP server: its own file reads/writes are internal config,
+# manifest, ignore-file, and rule I/O at paths the tool itself constructs. So
+# they are turned off for the self-scan only — this config is not applied to
+# the projects MCP-Safeguard scans for its users.
+rules:
+  mcp-unvalidated-file-read: 'off'
+  mcp-unrestricted-file-write: 'off'
+
+ignore:
+  - '**/tests/**'
+  - '**/test-fixtures/**'
+  - '**/rules/**'
+  - '**/examples/**'
+  - '**/dist/**'
+  - '**/node_modules/**'
+  - '**/*.test.ts'
+  - '**/*.test.js'
+
+severity:
+  failOn: 'high'

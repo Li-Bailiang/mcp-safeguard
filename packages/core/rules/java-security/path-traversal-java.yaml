@@ -1,0 +1,77 @@
+rules:
+  - id: java-path-traversal-file
+    languages: [java]
+    message: File path constructed with user input may allow path traversal attacks
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: new File($PATH + ...)
+          - pattern: new File(..., $PATH + ...)
+          - pattern: new File(String.format(...))
+          - pattern: new FileInputStream($PATH + ...)
+          - pattern: new FileOutputStream($PATH + ...)
+          - pattern: new FileReader($PATH + ...)
+          - pattern: new FileWriter($PATH + ...)
+    metadata:
+      category: java-security
+      subcategory:
+        - path-traversal
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-22"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      references:
+        - "https://owasp.org/www-community/attacks/Path_Traversal"
+      description: "Validate and sanitize file paths. Use canonical paths and check against allowed directories"
+
+  - id: java-path-traversal-paths
+    languages: [java]
+    message: Path constructed with user input may allow path traversal attacks
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: Paths.get($PATH + ...)
+          - pattern: Paths.get(..., $PATH + ...)
+          - pattern: Path.of($PATH + ...)
+          - pattern: Path.of(..., $PATH + ...)
+          - pattern: FileSystems.getDefault().getPath($PATH + ...)
+    metadata:
+      category: java-security
+      subcategory:
+        - path-traversal
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-22"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      references:
+        - "https://owasp.org/www-community/attacks/Path_Traversal"
+      description: "Validate and sanitize file paths. Resolve to canonical path and verify it starts with allowed base directory"
+
+  - id: java-path-traversal-resolve
+    languages: [java]
+    message: Path.resolve() with user input may allow path traversal
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: $PATH.resolve($INPUT + ...)
+          - pattern: $PATH.resolve(String.format(...))
+    metadata:
+      category: java-security
+      subcategory:
+        - path-traversal
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-22"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      references:
+        - "https://owasp.org/www-community/attacks/Path_Traversal"
+      description: "Sanitize input before resolving paths. Verify resolved path stays within expected directory"

@@ -1,0 +1,140 @@
+rules:
+  - id: mcp-allow-unauthenticated
+    languages: [json]
+    message: MCP server configured with allowUnauthenticated enabled
+    severity: ERROR
+    patterns:
+      - pattern: |
+          {
+            "allowUnauthenticated": true
+          }
+    metadata:
+      category: infrastructure
+      subcategory:
+        - mcp-config-security
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-306"
+      owasp:
+        - "A07:2021"
+
+  - id: mcp-insecure-transport
+    languages: [json]
+    message: MCP server transport not using TLS/SSL encryption
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              {
+                "transport": "http"
+              }
+          - pattern: |
+              {
+                "transport": {
+                  "type": "http",
+                  ...
+                }
+              }
+      - pattern-not: |
+          {
+            "transport": "https"
+          }
+      - pattern-not: |
+          {
+            "transport": {
+              "type": "https",
+              ...
+            }
+          }
+    metadata:
+      category: infrastructure
+      subcategory:
+        - mcp-config-security
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-319"
+      owasp:
+        - "A02:2021"
+
+  - id: mcp-missing-rate-limit
+    languages: [json]
+    message: MCP server missing rate limiting configuration
+    severity: WARNING
+    patterns:
+      - pattern: |
+          {
+            "mcpServers": {
+              ...
+            }
+          }
+      - pattern-not: |
+          {
+            "mcpServers": {
+              ...,
+              "rateLimit": {...}
+            }
+          }
+    metadata:
+      category: infrastructure
+      subcategory:
+        - mcp-config-security
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-770"
+      owasp:
+        - "A04:2021"
+
+  - id: mcp-overly-broad-cors
+    languages: [json]
+    message: MCP server configured with overly broad CORS allowing all origins
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              {
+                "cors": {
+                  "origin": "*"
+                }
+              }
+          - pattern: |
+              {
+                "allowedOrigins": ["*"]
+              }
+    metadata:
+      category: infrastructure
+      subcategory:
+        - mcp-config-security
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-942"
+      owasp:
+        - "A05:2021"
+
+  - id: mcp-disabled-logging
+    languages: [json]
+    message: MCP server logging disabled which hinders security monitoring
+    severity: WARNING
+    patterns:
+      - pattern: |
+          {
+            "logging": false
+          }
+    metadata:
+      category: infrastructure
+      subcategory:
+        - mcp-config-security
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-778"
+      owasp:
+        - "A09:2021"

@@ -1,0 +1,24 @@
+{
+  "name": "@mcp-safeguard/config-recommended",
+  "version": "0.1.0",
+  "description": "Recommended configuration preset for MCP-Safeguard",
+  "main": "index.js",
+  "keywords": ["mcp", "security", "config"],
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "author": "MCP-Safeguard contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Li-Bailiang/mcp-safeguard.git",
+    "directory": "packages/config-recommended"
+  },
+  "homepage": "https://github.com/Li-Bailiang/mcp-safeguard#readme",
+  "bugs": {
+    "url": "https://github.com/Li-Bailiang/mcp-safeguard/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

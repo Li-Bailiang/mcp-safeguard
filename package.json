@@ -1,0 +1,38 @@
+{
+  "name": "mcp-safeguard",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "description": "Security scanner for Model Context Protocol servers",
+  "keywords": [
+    "mcp",
+    "security",
+    "scanner",
+    "semgrep"
+  ],
+  "homepage": "https://github.com/Li-Bailiang/mcp-safeguard#readme",
+  "bugs": {
+    "url": "https://github.com/Li-Bailiang/mcp-safeguard/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Li-Bailiang/mcp-safeguard.git"
+  },
+  "license": "MIT",
+  "author": "MCP-Safeguard contributors",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

@@ -1,0 +1,63 @@
+rules:
+  - id: go-defer-in-loop
+    languages: [go]
+    message: defer in loop will not execute until function returns, causing resource leak
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              for ... {
+                ...
+                defer $FUNC(...)
+                ...
+              }
+          - pattern: |
+              for range ... {
+                ...
+                defer $FUNC(...)
+                ...
+              }
+    metadata:
+      category: go-security
+      subcategory:
+        - resource-leak
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-772"
+      references:
+        - "https://go.dev/wiki/CommonMistakes#using-defer-in-a-loop"
+      description: "defer statements in loops accumulate and execute only when function returns. Wrap loop body in a function or use explicit cleanup"
+
+  - id: go-defer-file-close-in-loop
+    languages: [go]
+    message: Deferring file.Close() in loop will keep files open until function returns
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              for ... {
+                ...
+                $F, $ERR := os.Open(...)
+                ...
+                defer $F.Close()
+                ...
+              }
+          - pattern: |
+              for range ... {
+                ...
+                $F, $ERR := os.Open(...)
+                ...
+                defer $F.Close()
+                ...
+              }
+    metadata:
+      category: go-security
+      subcategory:
+        - resource-leak
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-772"

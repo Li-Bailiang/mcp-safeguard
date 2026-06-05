@@ -1,0 +1,57 @@
+rules:
+  - id: go-command-injection
+    languages: [go]
+    message: Command execution with user input is vulnerable to command injection
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: exec.Command("sh", "-c", $CMD)
+          - pattern: exec.Command("bash", "-c", $CMD)
+          - pattern: exec.Command("/bin/sh", "-c", $CMD)
+          - pattern: exec.Command("/bin/bash", "-c", $CMD)
+          - pattern: exec.CommandContext($CTX, "sh", "-c", $CMD)
+          - pattern: exec.CommandContext($CTX, "bash", "-c", $CMD)
+      - metavariable-pattern:
+          metavariable: $CMD
+          patterns:
+            - pattern-either:
+                - pattern: $STR + ...
+                - pattern: fmt.Sprintf(...)
+    metadata:
+      category: go-security
+      subcategory:
+        - command-injection
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-78"
+      owasp:
+        - "A03:2021 - Injection"
+      references:
+        - "https://owasp.org/www-community/attacks/Command_Injection"
+      description: "Avoid using shell when executing commands. Use exec.Command with separate arguments instead of shell -c"
+
+  - id: go-command-injection-direct
+    languages: [go]
+    message: Command with concatenated user input may allow command injection
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: exec.Command($CMD, ..., $INPUT, ...)
+          - pattern: exec.CommandContext($CTX, $CMD, ..., $INPUT, ...)
+      - metavariable-pattern:
+          metavariable: $INPUT
+          patterns:
+            - pattern-either:
+                - pattern: $STR + ...
+                - pattern: fmt.Sprintf(...)
+    metadata:
+      category: go-security
+      subcategory:
+        - command-injection
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-78"

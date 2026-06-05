@@ -1,0 +1,176 @@
+rules:
+  - id: dockerfile-unpinned-base-image
+    languages: [dockerfile]
+    message: Dockerfile uses unpinned base image with 'latest' tag, which can lead to inconsistent builds
+    severity: WARNING
+    patterns:
+      - pattern-regex: FROM\s+[\w./-]+:latest
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-494"
+      owasp:
+        - "A06:2021"
+
+  - id: dockerfile-root-user
+    languages: [dockerfile]
+    message: Container runs as root user or USER directive is missing
+    severity: ERROR
+    patterns:
+      - pattern-regex: USER\s+root
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: HIGH
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-250"
+      owasp:
+        - "A01:2021"
+
+  - id: dockerfile-missing-healthcheck
+    languages: [dockerfile]
+    message: Dockerfile missing HEALTHCHECK instruction for container monitoring
+    severity: INFO
+    patterns:
+      - pattern-regex: FROM\s+.*
+      - pattern-not-regex: HEALTHCHECK
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: MEDIUM
+      impact: LOW
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-1357"
+
+  - id: dockerfile-overly-broad-copy
+    languages: [dockerfile]
+    message: Overly broad COPY or ADD instruction that may include sensitive files
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern-regex: COPY\s+\.\s+\.
+          - pattern-regex: ADD\s+\.\s+\.
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: HIGH
+      cwe:
+        - "CWE-538"
+      owasp:
+        - "A01:2021"
+
+  - id: dockerfile-hardcoded-secret-env
+    languages: [dockerfile]
+    message: Hardcoded secret detected in ENV instruction (token, password, key, secret)
+    severity: ERROR
+    patterns:
+      - pattern-regex: ENV\s+\w*(TOKEN|PASSWORD|KEY|SECRET|API_KEY|APIKEY)\w*\s*=\s*[^\s]+
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: HIGH
+      cwe:
+        - "CWE-798"
+      owasp:
+        - "A02:2021"
+
+  - id: dockerfile-privileged-container
+    languages: [dockerfile]
+    message: Container uses privileged flag which grants extended permissions
+    severity: ERROR
+    patterns:
+      - pattern-regex: --privileged
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: HIGH
+      impact: CRITICAL
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-250"
+      owasp:
+        - "A01:2021"
+
+  - id: dockerfile-exposed-port-range
+    languages: [dockerfile]
+    message: EXPOSE instruction uses wide port range which increases attack surface
+    severity: WARNING
+    patterns:
+      - pattern-regex: EXPOSE\s+\d+-\d+
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-1188"
+
+  - id: dockerfile-curl-pipe-sh
+    languages: [dockerfile]
+    message: Dangerous pattern 'curl | sh' or 'wget | sh' detected in RUN instruction
+    severity: ERROR
+    patterns:
+      - pattern-regex: RUN\s+.*(curl|wget)\s+.*\|\s*(sh|bash)
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-494"
+      owasp:
+        - "A08:2021"
+
+  - id: dockerfile-apt-get-no-clean
+    languages: [dockerfile]
+    message: apt-get install without cleanup increases image size and may cache sensitive data
+    severity: INFO
+    patterns:
+      - pattern-regex: RUN\s+.*apt-get\s+install(?!.*rm\s+-rf\s+/var/lib/apt/lists)
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: MEDIUM
+      impact: LOW
+      likelihood: HIGH
+      cwe:
+        - "CWE-459"
+
+  - id: dockerfile-missing-maintainer
+    languages: [dockerfile]
+    message: Dockerfile missing LABEL maintainer for accountability
+    severity: INFO
+    patterns:
+      - pattern-regex: FROM\s+.*
+      - pattern-not-regex: LABEL\s+maintainer
+    metadata:
+      category: infrastructure
+      subcategory:
+        - dockerfile-security
+      confidence: LOW
+      impact: LOW
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-1059"

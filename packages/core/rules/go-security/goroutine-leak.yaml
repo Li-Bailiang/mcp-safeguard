@@ -1,0 +1,42 @@
+rules:
+  - id: go-goroutine-leak
+    languages: [go]
+    message: Goroutine started without context cancellation or timeout mechanism, potentially causing goroutine leak
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              go func(...) {
+                ...
+                for {
+                  ...
+                }
+              }(...)
+          - pattern: |
+              go func(...) {
+                ...
+                for range $CH {
+                  ...
+                }
+              }(...)
+      - pattern-not-inside: |
+          go func(...) {
+            ...
+            select {
+              case <-$CTX.Done():
+                return
+            }
+            ...
+          }(...)
+    metadata:
+      category: go-security
+      subcategory:
+        - resource-leak
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-400"
+      references:
+        - "https://go.dev/blog/context"
+      description: "Goroutines with infinite loops should implement context cancellation to prevent resource leaks"

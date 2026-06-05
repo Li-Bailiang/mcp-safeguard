@@ -1,0 +1,35 @@
+rules:
+  - id: go-race-condition
+    languages: [go]
+    message: Shared variable accessed in goroutine without synchronization (mutex/channel), potential race condition
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              go func(...) {
+                ...
+                $VAR = ...
+                ...
+              }(...)
+          - pattern: |
+              go func(...) {
+                ...
+                $VAR.$FIELD = ...
+                ...
+              }(...)
+      - pattern-not-inside: |
+          $MU.Lock()
+          ...
+          $MU.Unlock()
+    metadata:
+      category: go-security
+      subcategory:
+        - concurrency
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-362"
+      references:
+        - "https://go.dev/doc/articles/race_detector"
+      description: "Concurrent access to shared variables must be synchronized using mutex or channels"

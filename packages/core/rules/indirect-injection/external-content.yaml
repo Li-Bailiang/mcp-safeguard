@@ -1,0 +1,247 @@
+rules:
+  - id: mcp-unsanitized-url-fetch
+    languages: [javascript, typescript]
+    message: Fetching external content without validation
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              fetch($URL)
+          - pattern: |
+              axios.get($URL)
+          - pattern: |
+              http.get($URL, ...)
+          - pattern: |
+              https.get($URL, ...)
+      - pattern-not-inside: |
+          $URL = sanitize(...)
+          ...
+      - pattern-not-inside: |
+          $URL = validator.isURL(...)
+          ...
+      - pattern-not-inside: |
+          if (isValidUrl($URL)) {
+            ...
+          }
+      # Host-allowlist guard clause: reject URLs whose host is not allow-listed.
+      - pattern-not-inside: |
+          if (!$ALLOW.includes(...)) { throw $E; }
+          ...
+    metadata:
+      category: indirect-injection
+      subcategory:
+        - ssrf
+      confidence: medium
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-918"
+      owasp:
+        - "A10:2021"
+
+  - id: mcp-python-unsanitized-fetch
+    languages: [python]
+    message: Fetching external content without validation
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: requests.get($URL)
+          - pattern: requests.post($URL, ...)
+          - pattern: urllib.request.urlopen($URL)
+      - pattern-not-inside: |
+          $URL = sanitize(...)
+          ...
+      - pattern-not-inside: |
+          if validators.url($URL):
+            ...
+    metadata:
+      category: indirect-injection
+      subcategory:
+        - ssrf
+      confidence: medium
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-918"
+
+  - id: mcp-prompt-injection-risk
+    languages: [javascript, typescript]
+    message: External content used in LLM prompt without sanitization
+    severity: ERROR
+    patterns:
+      - pattern: |
+          const $DATA = await fetch(...);
+          ...
+          const prompt = `... ${$DATA} ...`;
+      - pattern-not-inside: |
+          $DATA = sanitize(...)
+          ...
+      - pattern-not-inside: |
+          $DATA = escape(...)
+          ...
+      - pattern-not-inside: |
+          $DATA = escapeHtml(...)
+          ...
+      - pattern-not-inside: |
+          $DATA = DOMPurify.sanitize(...)
+          ...
+    metadata:
+      category: indirect-injection
+      subcategory:
+        - prompt-injection
+      confidence: high
+      impact: HIGH
+      likelihood: HIGH
+      cwe:
+        - "CWE-74"
+
+  - id: mcp-unvalidated-file-read
+    languages: [javascript, typescript]
+    message: Reading file with user-controlled path
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              readFile($PATH, ...)
+          - pattern: |
+              readFileSync($PATH, ...)
+      - pattern-not-inside: |
+          $PATH = path.resolve(...)
+          ...
+      - pattern-not-inside: |
+          $PATH = sanitize(...)
+          ...
+      - pattern-not-inside: |
+          if (isValidPath($PATH)) {
+            ...
+          }
+      - pattern-not-inside: |
+          $PATH = path.join(BASE_DIR, ...)
+          ...
+    metadata:
+      category: indirect-injection
+      subcategory:
+        - path-traversal
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-22"
+      owasp:
+        - "A01:2021"
+
+  - id: mcp-python-path-traversal
+    languages: [python]
+    message: File operation with user-controlled path
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: open($PATH, ...)
+          - pattern: os.path.join(..., $VAR, ...)
+      - pattern-not-inside: |
+          $PATH = sanitize(...)
+          ...
+      - pattern-not-inside: |
+          $PATH = os.path.abspath(...)
+          ...
+      - pattern-not-inside: |
+          if is_safe_path($PATH):
+            ...
+      # Guard-clause idiom: reject paths that escape the allowed base dir.
+      - pattern-not-inside: |
+          if not $X.startswith(...):
+              raise $E
+          ...
+      - pattern-not-inside: |
+          if not str(...).startswith(...):
+              raise $E
+          ...
+    metadata:
+      category: indirect-injection
+      subcategory:
+        - path-traversal
+      confidence: medium
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-22"
+
+  - id: mcp-xml-external-entities
+    languages: [javascript, typescript]
+    message: XML parsing without disabling external entities
+    severity: ERROR
+    patterns:
+      - pattern: |
+          const parser = new XMLParser(...);
+      - pattern-not-inside: |
+          new XMLParser({ ..., processEntities: false, ... })
+      - pattern-not-inside: |
+          new XMLParser({ ..., allowExternalEntities: false, ... })
+    metadata:
+      category: indirect-injection
+      subcategory:
+        - xxe
+      confidence: medium
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-611"
+      owasp:
+        - "A05:2021"
+
+  - id: mcp-sql-injection-risk
+    languages: [javascript, typescript]
+    message: Potential SQL injection with string concatenation
+    severity: ERROR
+    patterns:
+      - pattern: |
+          const query = "... " + $VAR + " ...";
+          ...
+          db.query(query, ...)
+      - pattern-not-inside: |
+          $VAR = escape(...)
+          ...
+      - pattern-not-inside: |
+          $VAR = sanitize(...)
+          ...
+      - pattern-not-inside: |
+          $VAR = validator.escape(...)
+          ...
+    metadata:
+      category: indirect-injection
+      subcategory:
+        - sql-injection
+      confidence: high
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-89"
+      owasp:
+        - "A03:2021"
+
+  - id: mcp-python-sql-injection
+    languages: [python]
+    message: SQL query constructed with string formatting
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              query = "... " + $VAR + " ..."
+              cursor.execute(query)
+          - pattern: |
+              cursor.execute(f"... {$VAR} ...")
+      - pattern-not-inside: |
+          $VAR = escape(...)
+          ...
+      - pattern-not-inside: |
+          $VAR = sanitize(...)
+          ...
+    metadata:
+      category: indirect-injection
+      subcategory:
+        - sql-injection
+      confidence: high
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-89"

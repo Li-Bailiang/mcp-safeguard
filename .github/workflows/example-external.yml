@@ -1,0 +1,95 @@
+name: Example - External Repository Usage
+
+# This workflow demonstrates how to use MCP-Safeguard in other repositories
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  security-scan:
+    name: MCP Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # The action installs pnpm + Node and builds the scanner itself,
+      # so no separate setup-node step is required here.
+      - name: Run MCP Security Scanner
+        uses: mcp-safeguard/mcp-safeguard@main
+        with:
+          fail-on-severity: 'high'
+          upload-sarif: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  advanced-scan:
+    name: Advanced Scan with Custom Config
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create custom config
+        run: |
+          cat > .mcp-safeguardrc.js << 'EOF'
+          module.exports = {
+            ignore: ['**/test/**', '**/fixtures/**'],
+            severity: {
+              minimum: 'warning'
+            },
+            rules: {
+              disabled: ['test-rule-id']
+            }
+          };
+          EOF
+
+      - name: Run scan with custom config
+        uses: mcp-safeguard/mcp-safeguard@main
+        with:
+          config-path: '.mcp-safeguardrc.js'
+          fail-on-severity: 'medium'
+          upload-sarif: 'true'
+
+      - name: Check scan results
+        if: always()
+        run: |
+          if [ -f "mcp-safeguard-results.json" ]; then
+            echo "Scan completed successfully"
+            cat mcp-safeguard-results.json | jq '.summary'
+          fi
+
+  conditional-scan:
+    name: Conditional Scan (Only on MCP Changes)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for MCP-related changes
+        id: check-changes
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '(mcp|server|index)\.(ts|js)$'; then
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run security scan
+        if: steps.check-changes.outputs.has-changes == 'true'
+        uses: mcp-safeguard/mcp-safeguard@main
+        with:
+          fail-on-severity: 'high'
+          upload-sarif: 'true'

@@ -1,0 +1,111 @@
+rules:
+  - id: java-trust-boundary-session
+    languages: [java]
+    message: Storing untrusted data in HttpSession without validation violates trust boundary
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: $SESSION.setAttribute($KEY, $REQUEST.getParameter(...))
+          - pattern: $SESSION.setAttribute($KEY, $REQUEST.getHeader(...))
+          - pattern: |
+              $VAL = $REQUEST.getParameter(...);
+              ...
+              $SESSION.setAttribute($KEY, $VAL);
+          - pattern: |
+              $VAL = $REQUEST.getHeader(...);
+              ...
+              $SESSION.setAttribute($KEY, $VAL);
+    metadata:
+      category: java-security
+      subcategory:
+        - trust-boundary
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-501"
+      owasp:
+        - "A04:2021 - Insecure Design"
+      references:
+        - "https://cwe.mitre.org/data/definitions/501.html"
+      description: "Validate and sanitize user input before storing in session to prevent trust boundary violations"
+
+  - id: java-trust-boundary-cache
+    languages: [java]
+    message: Caching untrusted data without validation may cause security issues
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: $CACHE.put($KEY, $REQUEST.getParameter(...))
+          - pattern: $CACHE.put($KEY, $REQUEST.getHeader(...))
+          - pattern: |
+              $VAL = $REQUEST.getParameter(...);
+              ...
+              $CACHE.put($KEY, $VAL);
+    metadata:
+      category: java-security
+      subcategory:
+        - trust-boundary
+      confidence: MEDIUM
+      impact: MEDIUM
+      likelihood: LOW
+      cwe:
+        - "CWE-501"
+      owasp:
+        - "A04:2021 - Insecure Design"
+      references:
+        - "https://cwe.mitre.org/data/definitions/501.html"
+      description: "Validate input before caching to prevent storing malicious data"
+
+  - id: java-trust-boundary-system-property
+    languages: [java]
+    message: Setting system property from user input violates trust boundary
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: System.setProperty($KEY, $REQUEST.getParameter(...))
+          - pattern: System.setProperty($KEY, $REQUEST.getHeader(...))
+          - pattern: |
+              $VAL = $REQUEST.getParameter(...);
+              ...
+              System.setProperty($KEY, $VAL);
+    metadata:
+      category: java-security
+      subcategory:
+        - trust-boundary
+      confidence: HIGH
+      impact: HIGH
+      likelihood: LOW
+      cwe:
+        - "CWE-501"
+      owasp:
+        - "A04:2021 - Insecure Design"
+      references:
+        - "https://cwe.mitre.org/data/definitions/501.html"
+      description: "Never allow user input to control system properties"
+
+  - id: java-trust-boundary-logging
+    languages: [java]
+    message: Logging unsanitized user input may lead to log injection
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: $LOGGER.info($REQUEST.getParameter(...))
+          - pattern: $LOGGER.info(... + $REQUEST.getParameter(...) + ...)
+          - pattern: $LOGGER.warn($REQUEST.getParameter(...))
+          - pattern: $LOGGER.error($REQUEST.getParameter(...))
+          - pattern: System.out.println($REQUEST.getParameter(...))
+    metadata:
+      category: java-security
+      subcategory:
+        - trust-boundary
+      confidence: MEDIUM
+      impact: LOW
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-117"
+      owasp:
+        - "A09:2021 - Security Logging and Monitoring Failures"
+      references:
+        - "https://owasp.org/www-community/attacks/Log_Injection"
+      description: "Sanitize user input before logging to prevent log injection and forging"

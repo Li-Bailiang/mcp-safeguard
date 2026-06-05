@@ -1,0 +1,56 @@
+rules:
+  - id: go-unhandled-error-file-ops
+    languages: [go]
+    message: File operation error ignored, may lead to data loss or corruption
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $F.Write(...)
+          - pattern: |
+              $F.WriteString(...)
+          - pattern: |
+              $F.Close()
+          - pattern: |
+              io.Copy(...)
+          - pattern: |
+              ioutil.WriteFile(...)
+          - pattern: |
+              os.WriteFile(...)
+      - pattern-not: |
+          $ERR := $FUNC(...)
+      - pattern-not: |
+          $X, $ERR := $FUNC(...)
+      - pattern-not: |
+          if $ERR := $FUNC(...); $ERR != nil {
+            ...
+          }
+    metadata:
+      category: go-security
+      subcategory:
+        - error-handling
+      confidence: HIGH
+      impact: MEDIUM
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-252"
+      references:
+        - "https://go.dev/blog/error-handling-and-go"
+      description: "Always check errors from file operations to prevent silent failures and data loss"
+
+  - id: go-unhandled-error-defer-close
+    languages: [go]
+    message: Deferred Close() error is ignored, may hide resource cleanup failures
+    severity: INFO
+    patterns:
+      - pattern: defer $F.Close()
+    metadata:
+      category: go-security
+      subcategory:
+        - error-handling
+      confidence: MEDIUM
+      impact: LOW
+      likelihood: LOW
+      cwe:
+        - "CWE-252"
+      description: "Consider capturing and handling Close() errors, especially for files opened for writing"

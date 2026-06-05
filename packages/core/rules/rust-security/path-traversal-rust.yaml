@@ -1,0 +1,91 @@
+rules:
+  - id: rust-path-traversal
+    languages: [rust]
+    message: Path constructed with untrusted input without sanitization, vulnerable to path traversal
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $BASE.join($INPUT)
+          - pattern: |
+              PathBuf::from($BASE).push($INPUT)
+          - pattern: |
+              Path::new($BASE).join($INPUT)
+      - metavariable-pattern:
+          metavariable: $INPUT
+          patterns:
+            - pattern-not: |
+                "..."
+    metadata:
+      category: rust-security
+      subcategory:
+        - path-traversal
+      confidence: HIGH
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-22"
+      owasp:
+        - "A01:2021 - Broken Access Control"
+      references:
+        - "https://owasp.org/www-community/attacks/Path_Traversal"
+      description: "Sanitize and validate user input before using in file paths. Use canonicalize() and verify the result is within allowed directories"
+
+  - id: rust-file-open-user-input
+    languages: [rust]
+    message: Opening file with user-controlled path without validation
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: |
+              File::open($PATH)
+          - pattern: |
+              File::create($PATH)
+          - pattern: |
+              OpenOptions::new()...open($PATH)
+          - pattern: |
+              fs::read($PATH)
+          - pattern: |
+              fs::read_to_string($PATH)
+          - pattern: |
+              fs::write($PATH, ...)
+      - metavariable-pattern:
+          metavariable: $PATH
+          patterns:
+            - pattern-not: |
+                "..."
+            - pattern-not: |
+                Path::new("...")
+    metadata:
+      category: rust-security
+      subcategory:
+        - path-traversal
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-22"
+      description: "Validate file paths from user input. Use canonicalize() and ensure paths don't escape base directory"
+
+  - id: rust-path-components-unsafe
+    languages: [rust]
+    message: Using push() with user input on PathBuf can enable directory traversal
+    severity: WARNING
+    patterns:
+      - pattern: |
+          $PATHBUF.push($INPUT)
+      - metavariable-pattern:
+          metavariable: $INPUT
+          patterns:
+            - pattern-not: |
+                "..."
+    metadata:
+      category: rust-security
+      subcategory:
+        - path-traversal
+      confidence: MEDIUM
+      impact: HIGH
+      likelihood: MEDIUM
+      cwe:
+        - "CWE-22"
+      description: "Validate path components to prevent '../' traversal sequences"
